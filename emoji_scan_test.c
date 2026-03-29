@@ -321,9 +321,10 @@ int main(void) {
   // 🏴 - Black flag + cancel tag without tag chars
   {
     uint32_t cps[] = {0x1F3F4, 0xE007F};
-    emoji_sequence_t exp[] = {{0, 0}};
-    test_greedy("Cancel tag without tags [greedy]", cps, 2, exp, 1);
-    test_strict("Cancel tag without tags [strict]", cps, 2, exp, 1);
+    emoji_sequence_t exp_greedy[] = {{0, 0}};
+    emoji_sequence_t exp_strict[] = {0};
+    test_greedy("Cancel tag without tags [greedy]", cps, 2, exp_greedy, 1);
+    test_strict("Cancel tag without tags [strict]", cps, 2, exp_strict, 0); // ❗
   }
 
   // 😀👍🏻🇺🇸 - Multiple sequences (3 different types)

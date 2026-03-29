@@ -30,8 +30,8 @@
  *   Accepting  (EMOJI, MODIFIER_BASE, MODIFIER, KEYCAP_VS, VS15, VS16) 
  *              - a complete sequence ends here but may still be extended
  *              by further input.
- *   Pending    (KEYCAP_BASE, RI1, TAG, ZWJ) - inside a valid prefix; no
- *              complete sequence yet.
+ *   Pending    (KEYCAP_BASE, RI1, TAG, TAG_TERM, ZWJ) - inside a valid 
+ *              prefix; no complete sequence yet.
  *   Boundary   (REJECT) - the current attempt is over; the codepoint that
  *              caused this state must be retried from START, since it may
  *              open the next sequence.
@@ -60,6 +60,7 @@ typedef enum {
   EMOJI_DFA_STATE_VS15,
   EMOJI_DFA_STATE_VS16,
   EMOJI_DFA_STATE_TAG,
+  EMOJI_DFA_STATE_TAG_TERM,
   EMOJI_DFA_STATE_ZWJ,
   EMOJI_DFA_STATE_COUNT
 } emoji_dfa_state_t;
@@ -117,12 +118,14 @@ emoji_dfa_table[EMOJI_DFA_STATE_COUNT][EMOJI_DFA_CLASS_COUNT] = {
     [EMOJI_DFA_CLASS_VS15]          = EMOJI_DFA_STATE_VS15,
     [EMOJI_DFA_CLASS_VS16]          = EMOJI_DFA_STATE_VS16,
     [EMOJI_DFA_CLASS_TAG_SPEC]      = EMOJI_DFA_STATE_TAG,
+    [EMOJI_DFA_CLASS_TAG_TERM]      = EMOJI_DFA_STATE_TAG_TERM,
     [EMOJI_DFA_CLASS_ZWJ]           = EMOJI_DFA_STATE_ZWJ,
   },
   [EMOJI_DFA_STATE_MODIFIER_BASE] = {
     [EMOJI_DFA_CLASS_VS15]          = EMOJI_DFA_STATE_VS15,
     [EMOJI_DFA_CLASS_VS16]          = EMOJI_DFA_STATE_VS16,
     [EMOJI_DFA_CLASS_TAG_SPEC]      = EMOJI_DFA_STATE_TAG,
+    [EMOJI_DFA_CLASS_TAG_TERM]      = EMOJI_DFA_STATE_TAG_TERM,
     [EMOJI_DFA_CLASS_ZWJ]           = EMOJI_DFA_STATE_ZWJ,
     [EMOJI_DFA_CLASS_MODIFIER]      = EMOJI_DFA_STATE_MODIFIER,
   },
@@ -136,6 +139,9 @@ emoji_dfa_table[EMOJI_DFA_STATE_COUNT][EMOJI_DFA_CLASS_COUNT] = {
   [EMOJI_DFA_STATE_TAG] = {
     [EMOJI_DFA_CLASS_TAG_SPEC]      = EMOJI_DFA_STATE_TAG,
     [EMOJI_DFA_CLASS_TAG_TERM]      = EMOJI_DFA_STATE_EMOJI,
+  },
+  [EMOJI_DFA_STATE_TAG_TERM] = {
+    [EMOJI_DFA_CLASS_ZWJ]           = EMOJI_DFA_STATE_ZWJ,
   },
   [EMOJI_DFA_STATE_ZWJ] = {
     [EMOJI_DFA_CLASS_RI]            = EMOJI_DFA_STATE_RI1,
