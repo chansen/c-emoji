@@ -162,6 +162,22 @@ int main(void) {
     test_strict("Keycap + keycap term (no VS) [strict]", cps, 2, exp, 1);
   }
 
+  // 😀︎⃣ - non-keycap emoji + VS-15 + keycap term (VS-15 is dead end, term rejected)
+  {
+    uint32_t cps[] = {0x1F600, 0xFE0E, 0x20E3};
+    emoji_sequence_t exp[] = {{0, 1}};
+    test_greedy("Emoji + VS-15 + keycap term (rejected) [greedy]", cps, 3, exp, 1);
+    test_strict("Emoji + VS-15 + keycap term (rejected) [strict]", cps, 3, exp, 1);
+  }
+
+  // 😀️⃣ - non-keycap emoji + VS-16 + keycap term (VS-16 has no keycap term transition)
+  {
+    uint32_t cps[] = {0x1F600, 0xFE0F, 0x20E3};
+    emoji_sequence_t exp[] = {{0, 1}};
+    test_greedy("Emoji + VS-16 + keycap term (rejected) [greedy]", cps, 3, exp, 1);
+    test_strict("Emoji + VS-16 + keycap term (rejected) [strict]", cps, 3, exp, 1);
+  }
+
   // © - Copyright symbol (text-default emoji)
   {
     uint32_t cps[] = {0x00A9};

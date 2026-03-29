@@ -27,8 +27,9 @@
  *
  * Every state is exactly one of:
  *
- *   Accepting  (EMOJI, MODIFIER_BASE, MODIFIER, VS15, VS16) - a complete
- *              sequence ends here but may still be extended by further input.
+ *   Accepting  (EMOJI, MODIFIER_BASE, MODIFIER, KEYCAP_VS, VS15, VS16) 
+ *              - a complete sequence ends here but may still be extended
+ *              by further input.
  *   Pending    (KEYCAP_BASE, RI1, TAG, ZWJ) - inside a valid prefix; no
  *              complete sequence yet.
  *   Boundary   (REJECT) - the current attempt is over; the codepoint that
@@ -55,6 +56,7 @@ typedef enum {
   EMOJI_DFA_STATE_EMOJI,
   EMOJI_DFA_STATE_MODIFIER_BASE,
   EMOJI_DFA_STATE_MODIFIER,
+  EMOJI_DFA_STATE_KEYCAP_VS,
   EMOJI_DFA_STATE_VS15,
   EMOJI_DFA_STATE_VS16,
   EMOJI_DFA_STATE_TAG,
@@ -101,8 +103,11 @@ emoji_dfa_table[EMOJI_DFA_STATE_COUNT][EMOJI_DFA_CLASS_COUNT] = {
     [EMOJI_DFA_CLASS_KEYCAP_BASE]   = EMOJI_DFA_STATE_KEYCAP_BASE,
   },
   [EMOJI_DFA_STATE_KEYCAP_BASE] = {
-    [EMOJI_DFA_CLASS_VS15]          = EMOJI_DFA_STATE_VS15,
-    [EMOJI_DFA_CLASS_VS16]          = EMOJI_DFA_STATE_VS16,
+    [EMOJI_DFA_CLASS_VS15]          = EMOJI_DFA_STATE_KEYCAP_VS,
+    [EMOJI_DFA_CLASS_VS16]          = EMOJI_DFA_STATE_KEYCAP_VS,
+    [EMOJI_DFA_CLASS_KEYCAP_TERM]   = EMOJI_DFA_STATE_EMOJI,
+  },
+  [EMOJI_DFA_STATE_KEYCAP_VS] = {
     [EMOJI_DFA_CLASS_KEYCAP_TERM]   = EMOJI_DFA_STATE_EMOJI,
   },
   [EMOJI_DFA_STATE_RI1] = {
@@ -124,11 +129,7 @@ emoji_dfa_table[EMOJI_DFA_STATE_COUNT][EMOJI_DFA_CLASS_COUNT] = {
   [EMOJI_DFA_STATE_MODIFIER] = {
     [EMOJI_DFA_CLASS_ZWJ]           = EMOJI_DFA_STATE_ZWJ,
   },
-  [EMOJI_DFA_STATE_VS15] = {
-    [EMOJI_DFA_CLASS_KEYCAP_TERM]   = EMOJI_DFA_STATE_EMOJI,
-  },
   [EMOJI_DFA_STATE_VS16] = {
-    [EMOJI_DFA_CLASS_KEYCAP_TERM]   = EMOJI_DFA_STATE_EMOJI,
     [EMOJI_DFA_CLASS_TAG_SPEC]      = EMOJI_DFA_STATE_TAG,
     [EMOJI_DFA_CLASS_ZWJ]           = EMOJI_DFA_STATE_ZWJ,
   },
@@ -148,6 +149,7 @@ static inline bool emoji_dfa_is_accepting(emoji_dfa_state_t state) {
   return state == EMOJI_DFA_STATE_EMOJI ||
          state == EMOJI_DFA_STATE_MODIFIER_BASE ||
          state == EMOJI_DFA_STATE_MODIFIER ||
+         state == EMOJI_DFA_STATE_KEYCAP_VS ||
          state == EMOJI_DFA_STATE_VS15 ||
          state == EMOJI_DFA_STATE_VS16;
 }
