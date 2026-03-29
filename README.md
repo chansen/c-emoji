@@ -204,6 +204,16 @@ codepoint after the span.
 
 Unicode 17.0.0.
 
+## Deviations from UTS #51
+
+UTS #51 defines `emoji_keycap_sequence` as a valid `emoji_zwj_element`,
+which would allow keycap sequences to appear as components in ZWJ sequences.
+This implementation does not accept keycap sequences as ZWJ elements — no
+ZWJ transition is defined from any keycap state. This follows RGI practice:
+no keycap-based ZWJ sequences appear in `emoji-zwj-sequences.txt`, so
+accepting them structurally would only produce sequences with no defined
+rendering.
+
 ## Requirements
 
 - C99 or later
