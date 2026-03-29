@@ -21,6 +21,12 @@
  * SOFTWARE.
  */
 
+/* Maps a Unicode codepoint to a DFA character class.
+ *
+ * Predicates are tested most-specific first.  Keycap bases (0-9, *, #),
+ * modifiers, and regional indicators all carry the Emoji property and would
+ * otherwise fall through to EMOJI_DFA_CLASS_EMOJI, producing wrong transitions.
+ */
 #ifndef EMOJI_UCD_CLASSIFY_H
 #define EMOJI_UCD_CLASSIFY_H
 #include <stddef.h>
