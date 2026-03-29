@@ -16,8 +16,8 @@ below.
 
 ## Usage
 
-Input must be an array of Unicode codepoints (`uint32_t`). UTF-8 or UTF-16
-strings must be decoded first.
+Input must be an array of Unicode codepoints. UTF-8 or UTF-16 strings must 
+be decoded first.
 
 ```c
 #include "emoji_scan.h"
@@ -28,7 +28,7 @@ emoji_sequence_t seqs[16];
 size_t count = emoji_scan_greedy(text, 4, seqs, 16);
 
 for (size_t i = 0; i < count; i++) {
-    printf("emoji at [%zu, %zu]\n", seqs[i].start, seqs[i].end);
+  printf("emoji at [%zu, %zu]\n", seqs[i].start, seqs[i].end);
 }
 // emoji at [0, 3]
 ```
@@ -79,20 +79,16 @@ distinct classes, or the DFA will produce wrong transitions.
 `emoji_dfa_step_record()` does the same but additionally accumulates a bitmask
 of all character classes seen during the current attempt. Classes are only
 recorded when the transition produces a meaningful state — codepoints that
-loop back to START or produce REJECT do not set bits, so the bitmask
-faithfully reflects only codepoints that contributed to the sequence. This
-bitmask can then be passed to `emoji_dfa_classify_type()` and
-`emoji_dfa_classify_style()` to determine sequence type and presentation
-without rescanning.
+loop back to START or produce REJECT do not set bits.
 
 ### States and boundaries
 
-Every state is one of three kinds. Accepting states (`EMOJI`, `MODIFIER_BASE`,
-`MODIFIER`, `VS15`, `VS16`) mean a complete sequence ends here but may still
-be extended. Pending states (`KEYCAP_BASE`, `RI1`, `TAG`, `ZWJ`) mean the
-machine is inside a valid prefix with no complete sequence yet. A boundary
-state (`REJECT`) means the current codepoint had no valid transition and the
-current attempt is over.
+Every state belongs to one of three categories. Accepting states mean a
+complete sequence ends here but may still be extended by further input.
+Pending states mean the machine is inside a valid prefix with no complete
+sequence yet. A boundary state (`REJECT`) means the current codepoint had
+no valid transition and the current attempt is over. The full list of states
+is in `emoji_dfa.h`.
 
 Note that `emoji_dfa_is_boundary()` being true is not the same as
 `emoji_dfa_is_accepting()` being false — pending states are neither.
@@ -110,10 +106,11 @@ skipped entirely so it is not included in the next sequence's range.
 ### Snapshotting accepted classes
 
 The class bitmask accumulates across the entire current attempt, including
-codepoints seen after the last accepting state. Snapshot it each time an
-accepting state is reached so it reflects the accepted sequence only, not
-any trailing codepoints before the boundary. Pass the snapshot to 
-`emoji_dfa_classify_type()` and `emoji_dfa_classify_style()`.
+any codepoints seen after the last accepting state. Snapshot it each time an
+accepting state is reached — the snapshot reflects the accepted sequence only,
+not any trailing codepoints before the boundary. Pass the snapshot to
+`emoji_dfa_classify_type()` and `emoji_dfa_classify_style()` to determine
+sequence type and presentation style without rescanning.
 
 ## Sequence types
 
@@ -144,8 +141,7 @@ stricter conformance should validate emitted sequences as needed:
 - **ZWJ sequences** — validate against `emoji-zwj-sequences.txt` to confirm
   the combination has a defined RGI rendering.
 - **Tag sequences** — validate tag characters against the subdivision codes
-  in `emoji-sequences.txt`. Today only `gbeng`, `gbsct`, and `gbwls` are
-  defined.
+  in `emoji-sequences.txt`.
 - **Presentation** — for `EMOJI_PRESENTATION_DEFAULT`, call
   `emoji_ucd_is_presentation()` to determine whether the codepoint renders
   as emoji or text by default.
@@ -200,9 +196,6 @@ codepoint after the span.
 | `emoji_ucd.h`          | Unicode property tries — `Emoji`, `Emoji_Modifier_Base`, `Emoji_Presentation` |
 | `emoji_ucd_classify.h` | Maps codepoints to DFA character classes |
 
-## Unicode version
-
-Unicode 17.0.0.
 
 ## Deviations from UTS #51
  
@@ -216,21 +209,24 @@ sequences as ZWJ elements. No keycap-based ZWJ sequences appear in
 `emoji-zwj-sequences.txt`, so accepting them structurally would only produce
 sequences with no defined rendering.
 
+**RI pairs as ZWJ elements** — UTS #51 defines `emoji_flag_sequence` as a valid 
+`emoji_core_sequence` and therefore a valid `emoji_zwj_element`. 
+This implementation does not accept flag pairs as components of ZWJ sequences. 
+No such combinations appear in `emoji-zwj-sequences.txt`.
+
 **Tag sequences restricted to U+1F3F4** — UTS #51 allows any `emoji_character`, 
 `emoji_modifier_sequence`, or `emoji_presentation_sequence` as a tag base. 
 This implementation only accepts U+1F3F4 WAVING BLACK FLAG as a tag base, 
 matching the only tag sequences defined in `emoji-sequences.txt` in Unicode 
 17.0.0 (`gbeng`, `gbsct`, `gbwls`).
 
-**RI pairs not valid inside ZWJ sequences** — UTS #51 defines
-`emoji_flag_sequence` as a valid `emoji_core_sequence` and therefore a valid
-`emoji_zwj_element`. This implementation does not accept flag pairs as
-components of ZWJ sequences. No such combinations appear in
-`emoji-zwj-sequences.txt`.
-
 ## Requirements
 
-- C99 or later
+C99 or later
+
+## Unicode version
+
+Unicode 17.0.0.
 
 ## License
 
