@@ -55,7 +55,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "emoji_scan.h"
 #include "emoji_dfa.h"
 #include "emoji_ucd_classify.h"
 
