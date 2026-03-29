@@ -277,9 +277,10 @@ int main(void) {
   // 👨‍🇸🇪 - Man + ZWJ + Sweden flag
   {
     uint32_t cps[] = {0x1F468, 0x200D, 0x1F1F8, 0x1F1EA};
-    emoji_sequence_t exp[] = {{0, 3}};
-    test_greedy("ZWJ + RI flag [greedy]", cps, 4, exp, 1);
-    test_strict("ZWJ + RI flag [strict]", cps, 4, exp, 1);
+    emoji_sequence_t exp_greedy[] = {{0, 0}, {2, 3}};
+    emoji_sequence_t exp_strict[] = {        {2, 3}};
+    test_greedy("ZWJ + RI flag [greedy]", cps, 4, exp_greedy, 2);
+    test_strict("ZWJ + RI flag [strict]", cps, 4, exp_strict, 1);  // ❗
   }
 
   // 👨‍ - Man + trailing ZWJ

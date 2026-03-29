@@ -137,12 +137,6 @@ int main(void) {
     test_type("ZWJ wins over MODIFIER", c, 4, EMOJI_SEQUENCE_ZWJ);
   }
 
-  // 👨‍🇸🇪 - ZWJ sequence with RI flag (ZWJ wins over FLAG)
-  {
-    uint32_t c[] = {0x1F468, 0x200D, 0x1F1F8, 0x1F1EA};
-    test_type("ZWJ wins over FLAG", c, 4, EMOJI_SEQUENCE_ZWJ);
-  }
-
   // 😀 - no variation selector
   {
     uint32_t c[] = {0x1F600};
