@@ -352,6 +352,54 @@ int main(void) {
     test_strict("Complete tag sequence (England flag) [strict]", cps, 7, exp, 1);
   }
 
+  // 🏴‍😀 - TAG_BASE + ZWJ + emoji (tag base as ZWJ element)
+  {
+    uint32_t cps[] = {0x1F3F4, 0x200D, 0x1F600};
+    emoji_sequence_t exp[] = {{0, 2}};
+    test_greedy("TAG_BASE + ZWJ + emoji [greedy]", cps, 3, exp, 1);
+    test_strict("TAG_BASE + ZWJ + emoji [strict]", cps, 3, exp, 1);
+  }
+
+  // 🏴️‍😀 - TAG_BASE + VS-16 + ZWJ + emoji
+  {
+    uint32_t cps[] = {0x1F3F4, 0xFE0F, 0x200D, 0x1F600};
+    emoji_sequence_t exp[] = {{0, 3}};
+    test_greedy("TAG_BASE + VS-16 + ZWJ + emoji [greedy]", cps, 4, exp, 1);
+    test_strict("TAG_BASE + VS-16 + ZWJ + emoji [strict]", cps, 4, exp, 1);
+  }
+
+  // 🏴︎ - TAG_BASE + VS-15
+  {
+    uint32_t cps[] = {0x1F3F4, 0xFE0E};
+    emoji_sequence_t exp[] = {{0, 1}};
+    test_greedy("TAG_BASE + VS-15 [greedy]", cps, 2, exp, 1);
+    test_strict("TAG_BASE + VS-15 [strict]", cps, 2, exp, 1);
+  }
+
+  // 🏴️󠁧󠁢󠁥󠁮󠁧󠁿 - TAG_BASE + VS-16 + tag chars + cancel
+  {
+    uint32_t cps[] = {0x1F3F4, 0xFE0F, 0xE0067, 0xE0062, 0xE007F};
+    emoji_sequence_t exp[] = {{0, 1}};
+    test_greedy("TAG_BASE + VS-16 + tag chars (tag rejected) [greedy]", cps, 5, exp, 1);
+    test_strict("TAG_BASE + VS-16 + tag chars (tag rejected) [strict]", cps, 5, exp, 1);
+  }
+
+  // 😀󠁧󠁢󠁿 - regular emoji + tag chars + cancel
+  {
+    uint32_t cps[] = {0x1F600, 0xE0067, 0xE0062, 0xE007F};
+    emoji_sequence_t exp[] = {{0, 0}};
+    test_greedy("Emoji + tag chars (rejected) [greedy]", cps, 4, exp, 1);
+    test_strict("Emoji + tag chars (rejected) [strict]", cps, 4, exp, 1);
+  }
+
+  // 😀󠁿 - regular emoji + cancel tag
+  {
+    uint32_t cps[] = {0x1F600, 0xE007F};
+    emoji_sequence_t exp[] = {{0, 0}};
+    test_greedy("Emoji + cancel tag (rejected) [greedy]", cps, 2, exp, 1);
+    test_strict("Emoji + cancel tag (rejected) [strict]", cps, 2, exp, 1);
+  }
+
   // Empty input
   {
     uint32_t cps[] = {0};

@@ -52,6 +52,11 @@ static inline bool emoji_ucd_is_enclosing_keycap(uint32_t cp) {
   return cp == 0x20E3;
 }
 
+// U+1F3F4 WAVING BLACK FLAG
+static inline bool emoji_ucd_is_tag_base(uint32_t cp) {
+  return cp == 0x1F3F4;
+}
+
 // U+E0020 TAG SPACE to U+E007E TAG TILDE
 static inline bool emoji_ucd_is_tag_spec(uint32_t cp) {
   return cp >= 0xE0020 && cp <= 0xE007E;

@@ -50,6 +50,8 @@ static inline emoji_dfa_class_t emoji_ucd_classify(uint32_t cp) {
     return EMOJI_DFA_CLASS_VS16;
   if (emoji_ucd_is_enclosing_keycap(cp))
     return EMOJI_DFA_CLASS_KEYCAP_TERM;
+  if (emoji_ucd_is_tag_base(cp))
+    return EMOJI_DFA_CLASS_TAG_BASE;
   if (emoji_ucd_is_tag_spec(cp))
     return EMOJI_DFA_CLASS_TAG_SPEC;
   if (emoji_ucd_is_tag_term(cp))
