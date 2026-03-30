@@ -65,11 +65,11 @@ extern "C" {
 typedef struct {
   size_t start;
   size_t end;
-} emoji_sequence_t;
+} emoji_scan_sequence_t;
 
 static inline size_t emoji_scan_strict(uint32_t* codepoints,
                                        size_t len,
-                                       emoji_sequence_t* out,
+                                       emoji_scan_sequence_t* out,
                                        size_t max_out) {
   emoji_dfa_state_t state = EMOJI_DFA_STATE_START;
   size_t start = 0, count = 0;
@@ -80,7 +80,7 @@ static inline size_t emoji_scan_strict(uint32_t* codepoints,
 
     if (emoji_dfa_is_boundary(next)) {
       if (emoji_dfa_is_accepting(state)) {
-        out[count++] = (emoji_sequence_t){
+        out[count++] = (emoji_scan_sequence_t){
           .start = start,
           .end   = i - 1
         };
@@ -95,7 +95,7 @@ static inline size_t emoji_scan_strict(uint32_t* codepoints,
   }
 
   if (start < len && count < max_out && emoji_dfa_is_accepting(state)) {
-    out[count++] = (emoji_sequence_t){
+    out[count++] = (emoji_scan_sequence_t){
       .start = start, 
       .end   = len - 1
     };
@@ -105,7 +105,7 @@ static inline size_t emoji_scan_strict(uint32_t* codepoints,
 
 static inline size_t emoji_scan_greedy(uint32_t* codepoints,
                                        size_t len,
-                                       emoji_sequence_t* out,
+                                       emoji_scan_sequence_t* out,
                                        size_t max_out) {
   emoji_dfa_state_t state = EMOJI_DFA_STATE_START;
   size_t start = 0, end = 0, count = 0;
@@ -117,7 +117,7 @@ static inline size_t emoji_scan_greedy(uint32_t* codepoints,
 
     if (emoji_dfa_is_boundary(next)) {
       if (has_accept) {
-        out[count++] = (emoji_sequence_t){
+        out[count++] = (emoji_scan_sequence_t){
           .start = start, 
           .end   = end
         };
@@ -138,7 +138,7 @@ static inline size_t emoji_scan_greedy(uint32_t* codepoints,
   }
 
   if (has_accept && count < max_out) {
-    out[count++] = (emoji_sequence_t){
+    out[count++] = (emoji_scan_sequence_t){
       .start = start, 
       .end   = end
     };
