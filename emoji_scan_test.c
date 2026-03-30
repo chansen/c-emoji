@@ -365,7 +365,7 @@ int main(void) {
     uint32_t cps[] = {0x1F3F4, 0x200D, 0x1F600};
     emoji_sequence_t exp[] = {{0, 2}};
     test_greedy("TAG_BASE + ZWJ + emoji [greedy]", cps, 3, exp, 1);
-    test_strict("TAG_BASE + ZWJ + semoji [strict]", cps, 3, exp, 1);
+    test_strict("TAG_BASE + ZWJ + emoji [strict]", cps, 3, exp, 1);
   }
 
   // 🏴️‍😀 - TAG_BASE + VS-16 + ZWJ + emoji
@@ -432,12 +432,46 @@ int main(void) {
     test_strict("Keycap + ZWJ (rejected) [strict]", cps, 4, exp, 2);
   }
 
-  // 🏴󠁧󠁢󠁥󠁮󠁧󠁿‍👩 - tag sequence + ZWJ (TERMINAL has no ZWJ transition)
+  // 1︎⃣‍👩 - VS-15 keycap + ZWJ (TERMINAL has no ZWJ transition)
+  {
+    uint32_t cps[] = {0x0031, 0xFE0E, 0x20E3, 0x200D, 0x1F469};
+    emoji_sequence_t exp[] = {{0, 2}, {4, 4}};
+    test_greedy("VS-15 Keycap + ZWJ (rejected) [greedy]", cps, 5, exp, 2);
+    test_strict("VS-15 Keycap + ZWJ (rejected) [strict]", cps, 5, exp, 2);
+  }
+
+  // 1️⃣‍👩 - VS-16 keycap + ZWJ (TERMINAL has no ZWJ transition)
+  {
+    uint32_t cps[] = {0x0031, 0xFE0F, 0x20E3, 0x200D, 0x1F469};
+    emoji_sequence_t exp[] = {{0, 2}, {4, 4}};
+    test_greedy("VS-16 Keycap + ZWJ (rejected) [greedy]", cps, 5, exp, 2);
+    test_strict("VS-16 Keycap + ZWJ (rejected) [strict]", cps, 5, exp, 2);
+  }
+
+  // 👩‍1️⃣ - emoji + ZWJ + keycap (keycap has no ZWJ transition)
+  {
+    uint32_t cps[] = {0x1F469, 0x200D, 0x0031, 0xFE0F, 0x20E3};
+    emoji_sequence_t exp_greedy[] = {{0, 0}, {2, 4}};
+    emoji_sequence_t exp_strict[] = {        {2, 4}};
+    test_greedy("ZWJ + Keycap (rejected) [greedy]", cps, 5, exp_greedy, 2);
+    test_strict("ZWJ + Keycap (rejected) [strict]", cps, 5, exp_strict, 1); // ❗
+  }
+
+  // 🏴󠁧󠁢󠁿‍👩 - tag sequence + ZWJ (TERMINAL has no ZWJ transition)
   {
     uint32_t cps[] = {0x1F3F4, 0xE0067, 0xE0062, 0xE007F, 0x200D, 0x1F469};
     emoji_sequence_t exp[] = {{0, 3}, {5, 5}};
     test_greedy("Tag sequence + ZWJ (rejected) [greedy]", cps, 6, exp, 2);
     test_strict("Tag sequence + ZWJ (rejected) [strict]", cps, 6, exp, 2);
+  }
+
+  // 👩‍🏴󠁧󠁢 - emoji + ZWJ + tag sequence (tag sequence has no ZWJ transition)
+  {
+    uint32_t cps[] = {0x1F469, 0x200D, 0x1F3F4, 0xE0067, 0xE0062, 0xE007F};
+    emoji_sequence_t exp_greedy[] = {{0, 0}, {2, 5}};
+    emoji_sequence_t exp_strict[] = {        {2, 5}};
+    test_greedy("ZWJ + Tag sequence (rejected) [greedy]", cps, 6, exp_greedy, 2);
+    test_strict("ZWJ + Tag sequence (rejected) [strict]", cps, 6, exp_strict, 1); // ❗
   }
 
   // 👋︎‍👩 - modifier_base + VS-15 + ZWJ (TERMINAL has no ZWJ transition)
