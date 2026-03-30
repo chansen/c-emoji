@@ -146,10 +146,7 @@ stricter conformance should validate emitted sequences as needed:
   `emoji_ucd_is_presentation()` to determine whether the codepoint renders
   as emoji or text by default.
 
-## Example: full text segmentation
-
-The DFA naturally segments a codepoint stream into alternating emoji and text
-spans:
+## Example: emoji segmentation
 
 ```c
 void segment(const uint32_t *codepoints, size_t len) {
@@ -163,21 +160,17 @@ void segment(const uint32_t *codepoints, size_t len) {
     if (emoji_dfa_is_boundary(next)) {
       if (emoji_dfa_is_accepting(state))
         printf("EMOJI [%zu, %zu)\n", start, i);
-      else
-        printf("TEXT  [%zu, %zu)\n", start, i);
-
-      state = emoji_dfa_step(EMOJI_DFA_STATE_START, klass);
-      start = i;
-    } else {
-      state = next;
+      next = emoji_dfa_step(EMOJI_DFA_STATE_START, klass);
     }
+
+    state = next;
+    if (emoji_dfa_is_start(state))
+      start = i + 1;
   }
 
   if (start < len) {
     if (emoji_dfa_is_accepting(state))
       printf("EMOJI [%zu, %zu)\n", start, len);
-    else
-      printf("TEXT  [%zu, %zu)\n", start, len);
   }
 }
 ```
