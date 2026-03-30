@@ -197,16 +197,19 @@ This implementation intentionally deviates from the UTS #51 grammar in
 the following ways, preferring RGI practice over the broader spec grammar:
  
 **Keycap sequences as ZWJ elements** — UTS #51 defines `emoji_keycap_sequence`
-as a valid `emoji_zwj_element`, allowing keycap sequences to appear as
-components in ZWJ sequences. This implementation does not accept keycap
-sequences as ZWJ elements. No keycap-based ZWJ sequences appear in
-`emoji-zwj-sequences.txt`, so accepting them structurally would only produce
-sequences with no defined rendering.
+a valid `emoji_core_sequence` and therefore a valid `emoji_zwj_element`, This 
+implementation does not accept keycap sequences as ZWJ elements. No 
+keycap-based ZWJ sequences appear in `emoji-zwj-sequences.txt`.
 
 **Flag sequences as ZWJ elements** — UTS #51 defines `emoji_flag_sequence` as 
-a valid `emoji_core_sequence` and therefore a valid `emoji_zwj_element`. 
-This implementation does not accept flag pairs as components of ZWJ sequences. 
+a valid `emoji_core_sequence` and therefore a valid `emoji_zwj_element`. This 
+implementation does not accept flag pairs as components of ZWJ sequences. 
 No such combinations appear in `emoji-zwj-sequences.txt`.
+
+**Tag sequences as ZWJ elements** — UTS #51 defines `emoji_tag_sequence` as 
+a valid `emoji_zwj_element`, allowing tag sequences to appear as components 
+in ZWJ sequences. This implementation does not accept tag sequences as ZWJ 
+elements. No tag-based ZWJ sequences appear in `emoji-zwj-sequences.txt`.
 
 **Tag sequences restricted to U+1F3F4** — UTS #51 allows any `emoji_character`, 
 `emoji_modifier_sequence`, or `emoji_presentation_sequence` as a tag base. 
