@@ -274,13 +274,21 @@ int main(void) {
     test_strict("ZWJ family [strict]", cps, 5, exp, 1);
   }
 
-  // 👨‍🇸🇪 - Man + ZWJ + Sweden flag
+  // 👨‍🇸🇪 - Man + ZWJ + Sweden flag (RI not valid in ZWJ)
   {
     uint32_t cps[] = {0x1F468, 0x200D, 0x1F1F8, 0x1F1EA};
     emoji_sequence_t exp_greedy[] = {{0, 0}, {2, 3}};
     emoji_sequence_t exp_strict[] = {        {2, 3}};
     test_greedy("ZWJ + RI flag [greedy]", cps, 4, exp_greedy, 2);
     test_strict("ZWJ + RI flag [strict]", cps, 4, exp_strict, 1);  // ❗
+  }
+
+  // 🇸🇪‍👨 - Sweden flag + ZWJ + Man (RI not valid in ZWJ)
+  {
+    uint32_t cps[] = {0x1F1F8, 0x1F1EA, 0x200D, 0x1F468};
+    emoji_sequence_t exp[] = {{0, 1}, {3, 3}};
+    test_greedy("RI flag + ZWJ [greedy]", cps, 4, exp, 2);
+    test_strict("RI flag + ZWJ [strict]", cps, 4, exp, 2);
   }
 
   // 👨‍ - Man + trailing ZWJ
@@ -357,7 +365,7 @@ int main(void) {
     uint32_t cps[] = {0x1F3F4, 0x200D, 0x1F600};
     emoji_sequence_t exp[] = {{0, 2}};
     test_greedy("TAG_BASE + ZWJ + emoji [greedy]", cps, 3, exp, 1);
-    test_strict("TAG_BASE + ZWJ + emoji [strict]", cps, 3, exp, 1);
+    test_strict("TAG_BASE + ZWJ + semoji [strict]", cps, 3, exp, 1);
   }
 
   // 🏴️‍😀 - TAG_BASE + VS-16 + ZWJ + emoji
@@ -376,7 +384,7 @@ int main(void) {
     test_strict("TAG_BASE + VS-15 [strict]", cps, 2, exp, 1);
   }
 
-  // 🏴️󠁧󠁢󠁥󠁮󠁧󠁿 - TAG_BASE + VS-16 + tag chars + cancel
+  // 🏴︎ - TAG_BASE + VS-16 + tag chars + cancel
   {
     uint32_t cps[] = {0x1F3F4, 0xFE0F, 0xE0067, 0xE0062, 0xE007F};
     emoji_sequence_t exp[] = {{0, 1}};
@@ -398,6 +406,70 @@ int main(void) {
     emoji_sequence_t exp[] = {{0, 0}};
     test_greedy("Emoji + cancel tag (rejected) [greedy]", cps, 2, exp, 1);
     test_strict("Emoji + cancel tag (rejected) [strict]", cps, 2, exp, 1);
+  }
+
+  // ☺︎‍👩 - VS-15 + ZWJ (TERMINAL has no ZWJ transition)
+  {
+    uint32_t cps[] = {0x263A, 0xFE0E, 0x200D, 0x1F469};
+    emoji_sequence_t exp[] = {{0, 1}, {3, 3}};
+    test_greedy("VS-15 + ZWJ (rejected) [greedy]", cps, 4, exp, 2);
+    test_strict("VS-15 + ZWJ (rejected) [strict]", cps, 4, exp, 2);
+  }
+
+  // 🇺🇸‍👩 - RI pair + ZWJ (TERMINAL has no ZWJ transition)
+  {
+    uint32_t cps[] = {0x1F1FA, 0x1F1F8, 0x200D, 0x1F469};
+    emoji_sequence_t exp[] = {{0, 1}, {3, 3}};
+    test_greedy("RI pair + ZWJ (rejected) [greedy]", cps, 4, exp, 2);
+    test_strict("RI pair + ZWJ (rejected) [strict]", cps, 4, exp, 2);
+  }
+
+  // 1⃣‍👩 - keycap + ZWJ (TERMINAL has no ZWJ transition)
+  {
+    uint32_t cps[] = {0x0031, 0x20E3, 0x200D, 0x1F469};
+    emoji_sequence_t exp[] = {{0, 1}, {3, 3}};
+    test_greedy("Keycap + ZWJ (rejected) [greedy]", cps, 4, exp, 2);
+    test_strict("Keycap + ZWJ (rejected) [strict]", cps, 4, exp, 2);
+  }
+
+  // 🏴󠁧󠁢󠁥󠁮󠁧󠁿‍👩 - tag sequence + ZWJ (TERMINAL has no ZWJ transition)
+  {
+    uint32_t cps[] = {0x1F3F4, 0xE0067, 0xE0062, 0xE007F, 0x200D, 0x1F469};
+    emoji_sequence_t exp[] = {{0, 3}, {5, 5}};
+    test_greedy("Tag sequence + ZWJ (rejected) [greedy]", cps, 6, exp, 2);
+    test_strict("Tag sequence + ZWJ (rejected) [strict]", cps, 6, exp, 2);
+  }
+
+  // 👋︎‍👩 - modifier_base + VS-15 + ZWJ (TERMINAL has no ZWJ transition)
+  {
+    uint32_t cps[] = {0x1F466, 0xFE0E, 0x200D, 0x1F469};
+    emoji_sequence_t exp[] = {{0, 1}, {3, 3}};
+    test_greedy("Modifier_base + VS-15 + ZWJ (rejected) [greedy]", cps, 4, exp, 2);
+    test_strict("Modifier_base + VS-15 + ZWJ (rejected) [strict]", cps, 4, exp, 2);
+  }
+
+  // ☺️‍👩 - VS-16 + ZWJ + emoji (OPTIONAL_ZWJ allows ZWJ)
+  {
+    uint32_t cps[] = {0x263A, 0xFE0F, 0x200D, 0x1F469};
+    emoji_sequence_t exp[] = {{0, 3}};
+    test_greedy("VS-16 + ZWJ + emoji [greedy]", cps, 4, exp, 1);
+    test_strict("VS-16 + ZWJ + emoji [strict]", cps, 4, exp, 1);
+  }
+
+  // 👦🏻‍💻 - modifier + ZWJ + emoji (OPTIONAL_ZWJ allows ZWJ)
+  {
+    uint32_t cps[] = {0x1F466, 0x1F3FB, 0x200D, 0x1F4BB};
+    emoji_sequence_t exp[] = {{0, 3}};
+    test_greedy("Modifier + ZWJ + emoji [greedy]", cps, 4, exp, 1);
+    test_strict("Modifier + ZWJ + emoji [strict]", cps, 4, exp, 1);
+  }
+
+  // 👨️‍👩 - modifier_base + VS-16 + ZWJ + emoji (OPTIONAL_ZWJ allows ZWJ)
+  {
+    uint32_t cps[] = {0x1F468, 0xFE0F, 0x200D, 0x1F469};
+    emoji_sequence_t exp[] = {{0, 3}};
+    test_greedy("Modifier_base + VS-16 + ZWJ + emoji [greedy]", cps, 4, exp, 1);
+    test_strict("Modifier_base + VS-16 + ZWJ + emoji [strict]", cps, 4, exp, 1);
   }
 
   // Empty input
