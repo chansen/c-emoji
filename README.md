@@ -209,8 +209,8 @@ sequences as ZWJ elements. No keycap-based ZWJ sequences appear in
 `emoji-zwj-sequences.txt`, so accepting them structurally would only produce
 sequences with no defined rendering.
 
-**RI pairs as ZWJ elements** — UTS #51 defines `emoji_flag_sequence` as a valid 
-`emoji_core_sequence` and therefore a valid `emoji_zwj_element`. 
+**Flag sequences as ZWJ elements** — UTS #51 defines `emoji_flag_sequence` as 
+a valid `emoji_core_sequence` and therefore a valid `emoji_zwj_element`. 
 This implementation does not accept flag pairs as components of ZWJ sequences. 
 No such combinations appear in `emoji-zwj-sequences.txt`.
 
