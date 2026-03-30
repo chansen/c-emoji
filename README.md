@@ -160,7 +160,8 @@ void segment(const uint32_t *codepoints, size_t len) {
     if (emoji_dfa_is_boundary(next)) {
       if (emoji_dfa_is_accepting(state))
         printf("EMOJI [%zu, %zu)\n", start, i);
-      next = emoji_dfa_step(EMOJI_DFA_STATE_START, klass);
+      next  = emoji_dfa_step(EMOJI_DFA_STATE_START, klass);
+      start = i;
     }
 
     state = next;

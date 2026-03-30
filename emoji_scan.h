@@ -85,13 +85,13 @@ static inline size_t emoji_scan_strict(uint32_t* codepoints,
           .end   = i - 1
         };
       }
-      state = emoji_dfa_step(EMOJI_DFA_STATE_START, klass);
-      start = emoji_dfa_is_start(state) ? i + 1 : i;
-    } else {
-      state = next;
-      if (emoji_dfa_is_start(state))
-        start = i + 1;
+      next  = emoji_dfa_step(EMOJI_DFA_STATE_START, klass);
+      start = i;
     }
+
+    state = next;
+    if (emoji_dfa_is_start(state))
+      start = i + 1;
   }
 
   if (start < len && count < max_out && emoji_dfa_is_accepting(state)) {
@@ -123,13 +123,13 @@ static inline size_t emoji_scan_greedy(uint32_t* codepoints,
         };
         has_accept = false;
       }
-      state = emoji_dfa_step(EMOJI_DFA_STATE_START, klass);
-      start = emoji_dfa_is_start(state) ? i + 1 : i;
-    } else {
-      state = next;
-      if (emoji_dfa_is_start(state))
-        start = i + 1;
+      next  = emoji_dfa_step(EMOJI_DFA_STATE_START, klass);
+      start = i;
     }
+
+    state = next;
+    if (emoji_dfa_is_start(state))
+      start = i + 1;
 
     if (emoji_dfa_is_accepting(state)) {
       has_accept = true;
