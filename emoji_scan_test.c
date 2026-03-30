@@ -574,6 +574,19 @@ int main(void) {
     test_strict("VS-15 + text + VS-16 [strict]", cps, 5, exp, 2);
   }
 
+  // Multiple text codepoints between emoji sequences (regression)
+  {
+    uint32_t cps[] = {
+      0x263A, 0xFE0E,  // ☺︎
+      0x0041,          // A
+      0x0042,          // B
+      0x263A, 0xFE0F   // ☺️
+    };
+    emoji_sequence_t exp[] = {{0, 1}, {4, 5}};
+    test_greedy("VS-15 + text + text + VS-16 [greedy]", cps, 6, exp, 2);
+    test_strict("VS-15 + text + text + VS-16 [strict]", cps, 6, exp, 2);
+  }
+
   print_summary();
 
   return TestsFailed > 0 ? 1 : 0;

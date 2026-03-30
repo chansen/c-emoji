@@ -89,6 +89,8 @@ static inline size_t emoji_scan_strict(uint32_t* codepoints,
       start = emoji_dfa_is_start(state) ? i + 1 : i;
     } else {
       state = next;
+      if (emoji_dfa_is_start(state))
+        start = i + 1;
     }
   }
 
@@ -125,6 +127,8 @@ static inline size_t emoji_scan_greedy(uint32_t* codepoints,
       start = emoji_dfa_is_start(state) ? i + 1 : i;
     } else {
       state = next;
+      if (emoji_dfa_is_start(state))
+        start = i + 1;
     }
 
     if (emoji_dfa_is_accepting(state)) {
