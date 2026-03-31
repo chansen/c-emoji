@@ -210,6 +210,23 @@ int main(void) {
     test_strict("Modifier without base [strict]", cps, 1, exp, 1);
   }
 
+
+  // 🏻️ - Lone modifier + VS-16
+  {
+    uint32_t cps[] = {0x1F3FB, 0xFE0F};
+    emoji_scan_sequence_t exp[] = {{0, 1}};
+    test_greedy("Lone modifier + VS-16 [greedy]", cps, 2, exp, 1);
+    test_strict("Lone modifier + VS-16 [strict]", cps, 2, exp, 1);
+  }
+
+  // 🏻︎ - Lone modifier + VS-15
+  {
+    uint32_t cps[] = {0x1F3FB, 0xFE0E};
+    emoji_scan_sequence_t exp[] = {{0, 1}};
+    test_greedy("Lone modifier + VS-15 [greedy]", cps, 2, exp, 1);
+    test_strict("Lone modifier + VS-15 [strict]", cps, 2, exp, 1);
+  }
+
   // 👩‍🦰🏻 - Woman + ZWJ + red hair + modifier
   {
     uint32_t cps[] = {0x1F469, 0x200D, 0x1F9B0, 0x1F3FB};
@@ -218,12 +235,68 @@ int main(void) {
     test_strict("Hair emoji + modifier [strict]", cps, 4, exp, 2);
   }
 
+  // 🏻🏼 - Two lone modifiers (each standalone)
+  {
+    uint32_t cps[] = {0x1F3FB, 0x1F3FC};
+    emoji_scan_sequence_t exp[] = {{0, 0}, {1, 1}};
+    test_greedy("Two lone modifiers [greedy]", cps, 2, exp, 2);
+    test_strict("Two lone modifiers [strict]", cps, 2, exp, 2);
+  }
+
   // 🇺🇸 - US flag (regional indicator pair)
   {
     uint32_t cps[] = {0x1F1FA, 0x1F1F8};
     emoji_scan_sequence_t exp[] = {{0, 1}};
     test_greedy("RI pair [greedy]", cps, 2, exp, 1);
     test_strict("RI pair [strict]", cps, 2, exp, 1);
+  }
+
+  // 🇸 - Lone regional indicator
+  {
+    uint32_t cps[] = {0x1F1F8};
+    emoji_scan_sequence_t exp[] = {{0, 0}};
+    test_greedy("Lone RI [greedy]", cps, 1, exp, 1);
+    test_strict("Lone RI [strict]", cps, 1, exp, 1);
+  }
+
+  // 🇸️ - Lone RI + VS-16
+  {
+    uint32_t cps[] = {0x1F1F8, 0xFE0F};
+    emoji_scan_sequence_t exp[] = {{0, 1}};
+    test_greedy("Lone RI + VS-16 [greedy]", cps, 2, exp, 1);
+    test_strict("Lone RI + VS-16 [strict]", cps, 2, exp, 1);
+  }
+
+  // 🇸︎ - Lone RI + VS-15
+  {
+    uint32_t cps[] = {0x1F1F8, 0xFE0E};
+    emoji_scan_sequence_t exp[] = {{0, 1}};
+    test_greedy("Lone RI + VS-15 [greedy]", cps, 2, exp, 1);
+    test_strict("Lone RI + VS-15 [strict]", cps, 2, exp, 1);
+  }
+
+  // 🇸‍👩 - Lone RI + ZWJ + emoji
+  {
+    uint32_t cps[] = {0x1F1F8, 0x200D, 0x1F469};
+    emoji_scan_sequence_t exp[] = {{0, 2}};
+    test_greedy("Lone RI + ZWJ + emoji [greedy]", cps, 3, exp, 1);
+    test_strict("Lone RI + ZWJ + emoji [strict]", cps, 3, exp, 1);
+  }
+
+  // 🇸️‍👩 - Lone RI + VS-16 + ZWJ + emoji
+  {
+    uint32_t cps[] = {0x1F1F8, 0xFE0F, 0x200D, 0x1F469};
+    emoji_scan_sequence_t exp[] = {{0, 3}};
+    test_greedy("Lone RI + VS-16 + ZWJ + emoji [greedy]", cps, 4, exp, 1);
+    test_strict("Lone RI + VS-16 + ZWJ + emoji [strict]", cps, 4, exp, 1);
+  }
+
+  // 🇺🇸‍👩 - RI pair + ZWJ + emoji (TERMINAL has no ZWJ transition)
+  {
+    uint32_t cps[] = {0x1F1FA, 0x1F1F8, 0x200D, 0x1F469};
+    emoji_scan_sequence_t exp[] = {{0, 1}, {3, 3}};
+    test_greedy("RI pair + ZWJ (rejected) [greedy]", cps, 4, exp, 2);
+    test_strict("RI pair + ZWJ (rejected) [strict]", cps, 4, exp, 2);
   }
 
   // 🇸🇪🇳 - Sweden flag + lone regional indicator
