@@ -27,10 +27,10 @@
  *
  * Every state is exactly one of:
  *
- *   Accepting  (COMPLETE, EMOJI, MODIFIER_BASE, OPTIONAL_ZWJ, KEYCAP_VS, TAG_BASE) 
+ *   Accepting  (TERMINAL, EMOJI, MODIFIER_BASE, OPTIONAL_ZWJ, KEYCAP_VS, TAG_BASE, RI) 
  *              - a complete sequence ends here but may still be extended
  *              by further input.
- *   Pending    (TAG_SPEC, TAG_TERM, KEYCAP_BASE, RI1, ZWJ) - inside a valid 
+ *   Pending    (TAG_SPEC, TAG_TERM, KEYCAP_BASE, ZWJ) - inside a valid 
  *              prefix; no complete sequence yet.
  *   Boundary   (REJECT) - the current attempt is over; the codepoint that
  *              caused this state must be retried from START, since it may
@@ -58,11 +58,11 @@ typedef enum {
   EMOJI_DFA_STATE_OPTIONAL_ZWJ,
   EMOJI_DFA_STATE_KEYCAP_VS,
   EMOJI_DFA_STATE_TAG_BASE,
+  EMOJI_DFA_STATE_RI,
   // Pending
   EMOJI_DFA_STATE_TAG_SPEC,
   EMOJI_DFA_STATE_TAG_TERM,
   EMOJI_DFA_STATE_KEYCAP_BASE,
-  EMOJI_DFA_STATE_RI1,
   EMOJI_DFA_STATE_ZWJ,
   EMOJI_DFA_STATE_COUNT
 } emoji_dfa_state_t;
@@ -86,6 +86,8 @@ typedef enum {
 
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
 _Static_assert(EMOJI_DFA_STATE_REJECT == 0, "EMOJI_DFA_STATE_REJECT must be zero");
+_Static_assert(EMOJI_DFA_STATE_COUNT <= 16, "States exceed 16-bit pack limit");
+_Static_assert(EMOJI_DFA_CLASS_COUNT <= 16, "Classes exceed 16-bit pack limit");
 #endif
 
 /* clang-format off */
@@ -93,7 +95,6 @@ static const emoji_dfa_state_t
 emoji_dfa_table[EMOJI_DFA_STATE_COUNT][EMOJI_DFA_CLASS_COUNT] = {
   [EMOJI_DFA_STATE_START] = {
     [EMOJI_DFA_CLASS_OTHER]         = EMOJI_DFA_STATE_START,
-    [EMOJI_DFA_CLASS_MODIFIER]      = EMOJI_DFA_STATE_START,
     [EMOJI_DFA_CLASS_VS15]          = EMOJI_DFA_STATE_START,
     [EMOJI_DFA_CLASS_VS16]          = EMOJI_DFA_STATE_START,
     [EMOJI_DFA_CLASS_TAG_SPEC]      = EMOJI_DFA_STATE_START,
@@ -101,8 +102,9 @@ emoji_dfa_table[EMOJI_DFA_STATE_COUNT][EMOJI_DFA_CLASS_COUNT] = {
     [EMOJI_DFA_CLASS_KEYCAP_TERM]   = EMOJI_DFA_STATE_START,
     [EMOJI_DFA_CLASS_ZWJ]           = EMOJI_DFA_STATE_START,
 
-    [EMOJI_DFA_CLASS_RI]            = EMOJI_DFA_STATE_RI1,
+    [EMOJI_DFA_CLASS_RI]            = EMOJI_DFA_STATE_RI,
     [EMOJI_DFA_CLASS_EMOJI]         = EMOJI_DFA_STATE_EMOJI,
+    [EMOJI_DFA_CLASS_MODIFIER]      = EMOJI_DFA_STATE_EMOJI,
     [EMOJI_DFA_CLASS_MODIFIER_BASE] = EMOJI_DFA_STATE_MODIFIER_BASE,
     [EMOJI_DFA_CLASS_KEYCAP_BASE]   = EMOJI_DFA_STATE_KEYCAP_BASE,
     [EMOJI_DFA_CLASS_TAG_BASE]      = EMOJI_DFA_STATE_TAG_BASE,
@@ -115,7 +117,10 @@ emoji_dfa_table[EMOJI_DFA_STATE_COUNT][EMOJI_DFA_CLASS_COUNT] = {
   [EMOJI_DFA_STATE_KEYCAP_VS] = {
     [EMOJI_DFA_CLASS_KEYCAP_TERM]   = EMOJI_DFA_STATE_TERMINAL,
   },
-  [EMOJI_DFA_STATE_RI1] = {
+  [EMOJI_DFA_STATE_RI] = {
+    [EMOJI_DFA_CLASS_VS15]          = EMOJI_DFA_STATE_TERMINAL,
+    [EMOJI_DFA_CLASS_VS16]          = EMOJI_DFA_STATE_OPTIONAL_ZWJ,
+    [EMOJI_DFA_CLASS_ZWJ]           = EMOJI_DFA_STATE_ZWJ,
     [EMOJI_DFA_CLASS_RI]            = EMOJI_DFA_STATE_TERMINAL,
   },
   [EMOJI_DFA_STATE_EMOJI] = {
@@ -156,7 +161,8 @@ static inline bool emoji_dfa_is_accepting(emoji_dfa_state_t state) {
          state == EMOJI_DFA_STATE_MODIFIER_BASE ||
          state == EMOJI_DFA_STATE_OPTIONAL_ZWJ ||
          state == EMOJI_DFA_STATE_KEYCAP_VS ||
-         state == EMOJI_DFA_STATE_TAG_BASE;
+         state == EMOJI_DFA_STATE_TAG_BASE ||
+         state == EMOJI_DFA_STATE_RI;
 }
 
 static inline bool emoji_dfa_is_boundary(emoji_dfa_state_t state) {
@@ -174,10 +180,10 @@ static inline emoji_dfa_state_t emoji_dfa_step(emoji_dfa_state_t state,
 
 static inline emoji_dfa_state_t emoji_dfa_step_record(emoji_dfa_state_t state,
                                                       emoji_dfa_class_t klass,
-                                                      uint32_t* recorded_classes) {
+                                                      uint32_t* recorded_bitmask) {
   state = emoji_dfa_step(state, klass);
   if (state != EMOJI_DFA_STATE_START && state != EMOJI_DFA_STATE_REJECT)
-    *recorded_classes |= 1u << klass;
+    *recorded_bitmask |= (1u << klass) | (1u << (state + 16));
   return state;
 }
 

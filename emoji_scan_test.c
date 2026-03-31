@@ -194,28 +194,28 @@ int main(void) {
     test_strict("Emoji + modifier [strict]", cps, 2, exp, 1);
   }
 
-  // 👍🏻🏽 - Thumbs up + two modifiers (only first valid)
+  // 👍🏻🏽 - Thumbs up + two modifiers
   {
     uint32_t cps[] = {0x1F44D, 0x1F3FB, 0x1F3FD};
-    emoji_scan_sequence_t exp[] = {{0, 1}};
-    test_greedy("Double modifier [greedy]", cps, 3, exp, 1);
-    test_strict("Double modifier [strict]", cps, 3, exp, 1);
+    emoji_scan_sequence_t exp[] = {{0, 1}, {2, 2}};
+    test_greedy("Double modifier [greedy]", cps, 3, exp, 2);
+    test_strict("Double modifier [strict]", cps, 3, exp, 2);
   }
 
-  // 🏻 - Lone skin tone modifier (invalid)
+  // 🏻 - Lone skin tone modifier
   {
     uint32_t cps[] = {0x1F3FB};
     emoji_scan_sequence_t exp[] = {{0, 0}};
-    test_greedy("Modifier without base [greedy]", cps, 1, exp, 0);
-    test_strict("Modifier without base [strict]", cps, 1, exp, 0);
+    test_greedy("Modifier without base [greedy]", cps, 1, exp, 1);
+    test_strict("Modifier without base [strict]", cps, 1, exp, 1);
   }
 
-  // 👩‍🦰🏻 - Woman + ZWJ + red hair + modifier (modifier rejected)
+  // 👩‍🦰🏻 - Woman + ZWJ + red hair + modifier
   {
     uint32_t cps[] = {0x1F469, 0x200D, 0x1F9B0, 0x1F3FB};
-    emoji_scan_sequence_t exp[] = {{0, 2}};
-    test_greedy("Hair emoji + modifier [greedy]", cps, 4, exp, 1);
-    test_strict("Hair emoji + modifier [strict]", cps, 4, exp, 1);
+    emoji_scan_sequence_t exp[] = {{0, 2}, {3, 3}};
+    test_greedy("Hair emoji + modifier [greedy]", cps, 4, exp, 2);
+    test_strict("Hair emoji + modifier [strict]", cps, 4, exp, 2);
   }
 
   // 🇺🇸 - US flag (regional indicator pair)
@@ -229,17 +229,17 @@ int main(void) {
   // 🇸🇪🇳 - Sweden flag + lone regional indicator
   {
     uint32_t cps[] = {0x1F1F8, 0x1F1EA, 0x1F1F3};
-    emoji_scan_sequence_t exp[] = {{0, 1}};
-    test_greedy("Odd RI count [greedy]", cps, 3, exp, 1);
-    test_strict("Odd RI count [strict]", cps, 3, exp, 1);
+    emoji_scan_sequence_t exp[] = {{0, 1}, {2, 2}};
+    test_greedy("Odd RI count [greedy]", cps, 3, exp, 2);
+    test_strict("Odd RI count [strict]", cps, 3, exp, 2);
   }
 
   // 🇸😀 - Lone regional indicator followed by emoji
   {
     uint32_t cps[] = {0x1F1F8, 0x1F600};
-    emoji_scan_sequence_t exp[] = {{1, 1}};
-    test_greedy("RI followed by emoji [greedy]", cps, 2, exp, 1);
-    test_strict("RI followed by emoji [strict]", cps, 2, exp, 1);
+    emoji_scan_sequence_t exp[] = {{0, 0}, {1, 1}};
+    test_greedy("RI followed by emoji [greedy]", cps, 2, exp, 2);
+    test_strict("RI followed by emoji [strict]", cps, 2, exp, 2);
   }
 
   // ️ - Lone variation selector-16 (invalid)
@@ -258,12 +258,12 @@ int main(void) {
     test_strict("Double VS-16 [strict]", cps, 3, exp, 1);
   }
 
-  // ✋️🏻 - Raised hand + VS-16 + modifier (invalid order)
+  // ✋️🏻 - Raised hand + VS-16 + modifier
   {
     uint32_t cps[] = {0x270B, 0xFE0F, 0x1F3FB};
-    emoji_scan_sequence_t exp[] = {{0, 1}};
-    test_greedy("VS-16 followed by modifier [greedy]", cps, 3, exp, 1);
-    test_strict("VS-16 followed by modifier [strict]", cps, 3, exp, 1);
+    emoji_scan_sequence_t exp[] = {{0, 1}, {2, 2}};
+    test_greedy("VS-16 followed by modifier [greedy]", cps, 3, exp, 2);
+    test_strict("VS-16 followed by modifier [strict]", cps, 3, exp, 2);
   }
 
   // 👨‍👩‍👧 - Family: man, woman, girl (ZWJ sequence)
@@ -424,6 +424,15 @@ int main(void) {
     test_strict("RI pair + ZWJ (rejected) [strict]", cps, 4, exp, 2);
   }
 
+  // 👩‍🇺🇸 - emoji + ZWJ, RI pair (RI pair has no ZWJ transition)
+  {
+    uint32_t cps[] = {0x1F469, 0x200D, 0x1F1FA, 0x1F1F8};
+    emoji_scan_sequence_t exp_greedy[] = {{0, 0}, {2, 3}};
+    emoji_scan_sequence_t exp_strict[] = {        {2, 3}};
+    test_greedy("ZWJ (rejected) + RI pair [greedy]", cps, 4, exp_greedy, 2);
+    test_strict("ZWJ (rejected) + RI pair [strict]", cps, 4, exp_strict, 1);  // ❗
+  }
+
   // 1⃣‍👩 - keycap + ZWJ (TERMINAL has no ZWJ transition)
   {
     uint32_t cps[] = {0x0031, 0x20E3, 0x200D, 0x1F469};
@@ -533,17 +542,17 @@ int main(void) {
   // 😀🇸🇪🇳 - Emoji, flag pair, lone RI
   {
     uint32_t cps[] = {0x1F600, 0x1F1F8, 0x1F1EA, 0x1F1F3};
-    emoji_scan_sequence_t exp[] = {{0, 0}, {1, 2}};
-    test_greedy("Emoji then flag then lone RI [greedy]", cps, 4, exp, 2);
-    test_strict("Emoji then flag then lone RI [strict]", cps, 4, exp, 2);
+    emoji_scan_sequence_t exp[] = {{0, 0}, {1, 2}, {3, 3}};
+    test_greedy("Emoji then flag then lone RI [greedy]", cps, 4, exp, 3);
+    test_strict("Emoji then flag then lone RI [strict]", cps, 4, exp, 3);
   }
 
   // Multiple lone modifiers
   {
-    uint32_t cps[] = {0x1F3FB, 0x1F3FC, 0x1F3FD, 0x1F3FE, 0x1F3FF};
-    emoji_scan_sequence_t exp[] = {0};
-    test_greedy("Multiple lone modifiers [greedy]", cps, 5, exp, 0);
-    test_strict("Multiple lone modifiers [strict]", cps, 5, exp, 0);
+    uint32_t cps[] = {0x1F3FB, 0x1F3FC, 0x1F3FD, 0x1F3FE, 0x1F3FF}; // 🏻🏼🏽🏾🏿
+    emoji_scan_sequence_t exp[] = {{0,0}, {1,1}, {2,2}, {3,3}, {4,4}};
+    test_greedy("Multiple lone modifiers [greedy]", cps, 5, exp, 5);
+    test_strict("Multiple lone modifiers [strict]", cps, 5, exp, 5);
   }
 
   // Emoji + VS-15 (terminal state, valid)
@@ -578,20 +587,20 @@ int main(void) {
     test_strict("Emoji + VS-16 + ZWJ + emoji [strict]", cps, 4, exp, 1);
   }
 
-  // Emoji + VS-15 + modifier (rejected after VS-15)
+  // Emoji + VS-15 + modifier
   {
-    uint32_t cps[] = {0x1F44B, 0xFE0E, 0x1F3FB};  // 👋︎🏻
-    emoji_scan_sequence_t exp[] = {{0, 1}};  // Just 👋︎, modifier rejected
-    test_greedy("Emoji + VS-15 + modifier (rejected) [greedy]", cps, 3, exp, 1);
-    test_strict("Emoji + VS-15 + modifier (rejected) [strict]", cps, 3, exp, 1);
+    uint32_t cps[] = {0x1F44B, 0xFE0E, 0x1F3FB};  // 👋️🏻🏻
+    emoji_scan_sequence_t exp[] = {{0, 1}, {2, 2}};
+    test_greedy("Emoji + VS-15 + modifier (rejected) [greedy]", cps, 3, exp, 2);
+    test_strict("Emoji + VS-15 + modifier (rejected) [strict]", cps, 3, exp, 2);
   }
 
   // Emoji + VS-16 + modifier (rejected after VS-16)
   {
-    uint32_t cps[] = {0x1F44B, 0xFE0F, 0x1F3FB};  // 👋️🏻
-    emoji_scan_sequence_t exp[] = {{0, 1}};  // Just 👋️, modifier rejected
-    test_greedy("Emoji + VS-16 + modifier (rejected) [greedy]", cps, 3, exp, 1);
-    test_strict("Emoji + VS-16 + modifier (rejected) [strict]", cps, 3, exp, 1);
+    uint32_t cps[] = {0x1F44B, 0xFE0F, 0x1F3FB};  // 👋️🏻🏻
+    emoji_scan_sequence_t exp[] = {{0, 1}, {2,2}};
+    test_greedy("Emoji + VS-16 + modifier (rejected) [greedy]", cps, 3, exp, 2);
+    test_strict("Emoji + VS-16 + modifier (rejected) [strict]", cps, 3, exp, 2);
   }
 
   // Emoji + modifier + VS-16 (rejected after modifier)

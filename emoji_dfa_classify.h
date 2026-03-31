@@ -21,15 +21,15 @@
  * SOFTWARE.
  */
 
-/* Sequence classification from a recorded_classes bitmask.
+/* Sequence classification from a recorded bitmask.
  *
  * These functions interpret the bitmask accumulated by emoji_dfa_step_record()
  * over an accepted sequence. The results are undefined if called on a partial
  * or rejected sequence.
  *
  * emoji_dfa_classify_type() priority order is load-bearing: a ZWJ sequence 
- * containing a modifier or RI pair will have multiple class bits set; the 
- * ordering ensures the dominant structural feature wins.
+ * containing a modifier will have multiple class bits set; the ordering 
+ * ensures the dominant structural feature wins.
  *
  * emoji_dfa_classify_style() returns DEFAULT when no variation selector was 
  * seen. The caller must consult the Emoji_Presentation property to determine 
@@ -47,24 +47,28 @@
 extern "C" {
 #endif
 
-static inline emoji_sequence_type_t emoji_dfa_classify_type(uint32_t recorded_classes) {
-  if (recorded_classes & (1u << EMOJI_DFA_CLASS_ZWJ))
+static inline emoji_sequence_type_t emoji_dfa_classify_type(uint32_t recorded_bitmask) {
+  // Check low 16 bits for class
+  if (recorded_bitmask & (1u << EMOJI_DFA_CLASS_ZWJ))
     return EMOJI_SEQUENCE_ZWJ;
-  if (recorded_classes & (1u << EMOJI_DFA_CLASS_TAG_SPEC))
+  if (recorded_bitmask & (1u << EMOJI_DFA_CLASS_TAG_SPEC))
     return EMOJI_SEQUENCE_TAG;
-  if (recorded_classes & (1u << EMOJI_DFA_CLASS_RI))
+  // Check high 16 bits for state
+  if ((recorded_bitmask & (1u << (EMOJI_DFA_STATE_RI + 16))) &&
+      (recorded_bitmask & (1u << (EMOJI_DFA_STATE_TERMINAL + 16))))
     return EMOJI_SEQUENCE_FLAG;
-  if (recorded_classes & (1u << EMOJI_DFA_CLASS_MODIFIER))
+  if ((recorded_bitmask & (1u << EMOJI_DFA_CLASS_MODIFIER_BASE)) &&
+      (recorded_bitmask & (1u << EMOJI_DFA_CLASS_MODIFIER)))
     return EMOJI_SEQUENCE_MODIFIER;
-  if (recorded_classes & (1u << EMOJI_DFA_CLASS_KEYCAP_TERM))
+  if (recorded_bitmask & (1u << EMOJI_DFA_CLASS_KEYCAP_TERM))
     return EMOJI_SEQUENCE_KEYCAP;
   return EMOJI_SEQUENCE_BASIC;
 }
 
-static inline emoji_presentation_style_t emoji_dfa_classify_style(uint32_t recorded_classes) {
-  if (recorded_classes & (1u << EMOJI_DFA_CLASS_VS15))
+static inline emoji_presentation_style_t emoji_dfa_classify_style(uint32_t recorded_bitmask) {
+  if (recorded_bitmask & (1u << EMOJI_DFA_CLASS_VS15))
     return EMOJI_PRESENTATION_TEXT;
-  if (recorded_classes & (1u << EMOJI_DFA_CLASS_VS16))
+  if (recorded_bitmask & (1u << EMOJI_DFA_CLASS_VS16))
     return EMOJI_PRESENTATION_EMOJI;
   return EMOJI_PRESENTATION_DEFAULT;
 }

@@ -125,6 +125,18 @@ int main(void) {
     test_type("MODIFIER: base + Fitzpatrick", c, 2, EMOJI_SEQUENCE_MODIFIER);
   }
 
+  // 🏿 - modifier
+  {
+    uint32_t c[] = {0x1F3FF};
+    test_type("BASIC: Fitzpatrick modifier", c, 1, EMOJI_SEQUENCE_BASIC);
+  }
+
+  // 🇸 - regional indicator
+  {
+    uint32_t c[] = {0x1F1F8};
+    test_type("BASIC: Lone RI", c, 1, EMOJI_SEQUENCE_BASIC);
+  }
+
   // 👨‍👩‍👧 - family ZWJ sequence
   {
     uint32_t c[] = {0x1F468, 0x200D, 0x1F469, 0x200D, 0x1F467};
