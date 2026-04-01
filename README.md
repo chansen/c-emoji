@@ -217,6 +217,15 @@ This implementation only accepts U+1F3F4 WAVING BLACK FLAG as a tag base,
 matching the only tag sequences defined in `emoji-sequences.txt` in Unicode 
 17.0.0 (`gbeng`, `gbsct`, `gbwls`).
 
+**Keycap bases not accepted as bare emoji** — The digits 0–9, `#`, and `*`
+carry the `Emoji` property in Unicode and would therefore be accepted as
+standalone emoji sequences under the UTS #51 grammar.  This implementation
+only accepts them when followed by an optional variation selector (VS-15 or
+VS-16) and/or U+20E3 COMBINING ENCLOSING KEYCAP.  A bare digit, `#`, or `*`
+with no following VS or enclosing keycap is never emitted as a sequence.
+This matches RGI practice: no bare keycap base appears in
+`emoji-sequences.txt`.
+
 ## Requirements
 
 C99 or later
