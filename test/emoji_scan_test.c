@@ -41,7 +41,7 @@ static void print_diff(emoji_scan_sequence_t* got, size_t got_n,
 }
 
 static void test_run(const char* name,
-                 size_t (*fn)(uint32_t*, size_t, emoji_scan_sequence_t*, size_t),
+                 size_t (*fn)(const uint32_t*, size_t, emoji_scan_sequence_t*, size_t),
                  uint32_t* cps,
                  size_t len,
                  emoji_scan_sequence_t* exp,

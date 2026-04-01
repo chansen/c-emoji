@@ -67,7 +67,7 @@ typedef struct {
   size_t end;
 } emoji_scan_sequence_t;
 
-static inline size_t emoji_scan_strict(uint32_t* codepoints,
+static inline size_t emoji_scan_strict(const uint32_t* codepoints,
                                        size_t len,
                                        emoji_scan_sequence_t* out,
                                        size_t max_out) {
@@ -103,7 +103,7 @@ static inline size_t emoji_scan_strict(uint32_t* codepoints,
   return count;
 }
 
-static inline size_t emoji_scan_greedy(uint32_t* codepoints,
+static inline size_t emoji_scan_greedy(const uint32_t* codepoints,
                                        size_t len,
                                        emoji_scan_sequence_t* out,
                                        size_t max_out) {
