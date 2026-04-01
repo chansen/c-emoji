@@ -77,9 +77,9 @@ distinct classes, or the DFA will produce wrong transitions.
 
 `emoji_dfa_step()` takes a state and a class and returns the next state.
 `emoji_dfa_step_record()` does the same but additionally accumulates a bitmask
-of all character classes seen during the current attempt. Classes are only
-recorded when the transition produces a meaningful state — codepoints that
-loop back to START or produce REJECT do not set bits.
+of all character classes and states seen during the current attempt. Classes 
+and states are only recorded when the transition produces a meaningful state 
+— codepoints that loop back to START or produce REJECT do not set bits.
 
 ### States and boundaries
 
@@ -105,8 +105,8 @@ skipped entirely so it is not included in the next sequence's range.
 
 ### Snapshotting accepted classes
 
-The class bitmask accumulates across the entire current attempt, including
-any codepoints seen after the last accepting state. Snapshot it each time an
+The bitmask accumulates across the entire current attempt, including any 
+codepoints seen after the last accepting state. Snapshot it each time an
 accepting state is reached — the snapshot reflects the accepted sequence only,
 not any trailing codepoints before the boundary. Pass the snapshot to
 `emoji_dfa_classify_type()` and `emoji_dfa_classify_style()` to determine
@@ -231,13 +231,13 @@ This matches RGI practice: no bare keycap base appears in
 The following tests verify conformance against the official Unicode data
 files for emoji 17.0.0.
  
-| Test program                    | Data file                       | What it checks |
-|---------------------------------|---------------------------------|----------------|
-| `emoji_data_test`               | `emoji-data.txt`                | `Emoji`, `Emoji_Presentation`, `Emoji_Modifier`, and `Emoji_Modifier_Base` property predicates in `emoji_ucd.h` against every codepoint range in the file |
-| `emoji_sequences_test`          | `emoji-sequences.txt`           | Every RGI Basic_Emoji, Emoji_Keycap_Sequence, RGI_Emoji_Modifier_Sequence, RGI_Emoji_Flag_Sequence, and RGI_Emoji_Tag_Sequence is accepted by the DFA and correctly classified by `emoji_dfa_classify_type()`, with `emoji_scan_strict()` used to verify the DFA accepts each sequence as a single span |
-| `emoji_sequences_test`          | `emoji-zwj-sequences.txt`       | Every RGI_Emoji_ZWJ_Sequence is accepted by the DFA and correctly classified |
-| `emoji_variation_sequences_test`| `emoji-variation-sequences.txt` | Every emoji and text variation sequence is accepted by the DFA and correctly classified by `emoji_dfa_classify_style()` |
-| `emoji_test_test`               | `emoji-test.txt`                | All fully-qualified, minimally-qualified, unqualified, and component sequences are accepted by the DFA regardless of qualification status |
+| Data file                       | What it checks |
+|---------------------------------|----------------|
+| `emoji-data.txt`                | `Emoji`, `Emoji_Presentation`, `Emoji_Modifier`, and `Emoji_Modifier_Base` property predicates in `emoji_ucd.h` against every codepoint range in the file |
+| `emoji-sequences.txt`           | Every RGI Basic_Emoji, Emoji_Keycap_Sequence, RGI_Emoji_Modifier_Sequence, RGI_Emoji_Flag_Sequence, and RGI_Emoji_Tag_Sequence is accepted by the DFA and correctly classified by `emoji_dfa_classify_type()` |
+| `emoji-zwj-sequences.txt`       | Every RGI_Emoji_ZWJ_Sequence is accepted by the DFA and correctly classified |
+| `emoji-variation-sequences.txt` | Every emoji and text variation sequence is accepted by the DFA and correctly classified by `emoji_dfa_classify_style()` |
+| `emoji-test.txt`                | All fully-qualified, minimally-qualified, unqualified, and component sequences are accepted by the DFA |
 
 ## Requirements
 
