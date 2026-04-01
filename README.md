@@ -226,6 +226,19 @@ with no following VS or enclosing keycap is never emitted as a sequence.
 This matches RGI practice: no bare keycap base appears in
 `emoji-sequences.txt`.
 
+## Conformance tests
+ 
+The following tests verify conformance against the official Unicode data
+files for emoji 17.0.0.
+ 
+| Test program                    | Data file                       | What it checks |
+|---------------------------------|---------------------------------|----------------|
+| `emoji_data_test`               | `emoji-data.txt`                | `Emoji`, `Emoji_Presentation`, `Emoji_Modifier`, and `Emoji_Modifier_Base` property predicates in `emoji_ucd.h` against every codepoint range in the file |
+| `emoji_sequences_test`          | `emoji-sequences.txt`           | Every RGI Basic_Emoji, Emoji_Keycap_Sequence, RGI_Emoji_Modifier_Sequence, RGI_Emoji_Flag_Sequence, and RGI_Emoji_Tag_Sequence is accepted by the DFA and correctly classified by `emoji_dfa_classify_type()`, with `emoji_scan_strict()` used to verify the DFA accepts each sequence as a single span |
+| `emoji_sequences_test`          | `emoji-zwj-sequences.txt`       | Every RGI_Emoji_ZWJ_Sequence is accepted by the DFA and correctly classified |
+| `emoji_variation_sequences_test`| `emoji-variation-sequences.txt` | Every emoji and text variation sequence is accepted by the DFA and correctly classified by `emoji_dfa_classify_style()` |
+| `emoji_test_test`               | `emoji-test.txt`                | All fully-qualified, minimally-qualified, unqualified, and component sequences are accepted by the DFA regardless of qualification status |
+
 ## Requirements
 
 C99 or later
