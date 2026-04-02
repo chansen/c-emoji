@@ -30,7 +30,7 @@
  *   Accepting  (TERMINAL, EMOJI, MODIFIER_BASE, OPTIONAL_ZWJ, KEYCAP_VS, TAG_BASE, RI) 
  *              - a complete sequence ends here but may still be extended
  *              by further input.
- *   Pending    (TAG_SPEC, TAG_TERM, KEYCAP_BASE, ZWJ) - inside a valid 
+ *   Pending    (TAG_SPEC, TAG_EMPTY, KEYCAP_BASE, ZWJ) - inside a valid 
  *              prefix; no complete sequence yet.
  *   Boundary   (REJECT) - the current attempt is over; the codepoint that
  *              caused this state must be retried from START, since it may
@@ -61,7 +61,7 @@ typedef enum {
   EMOJI_DFA_STATE_RI,
   // Pending
   EMOJI_DFA_STATE_TAG_SPEC,
-  EMOJI_DFA_STATE_TAG_TERM,
+  EMOJI_DFA_STATE_TAG_EMPTY,
   EMOJI_DFA_STATE_KEYCAP_BASE,
   EMOJI_DFA_STATE_ZWJ,
   EMOJI_DFA_STATE_COUNT
@@ -138,7 +138,7 @@ emoji_dfa_table[EMOJI_DFA_STATE_COUNT][EMOJI_DFA_CLASS_COUNT] = {
     [EMOJI_DFA_CLASS_VS15]          = EMOJI_DFA_STATE_TERMINAL,
     [EMOJI_DFA_CLASS_VS16]          = EMOJI_DFA_STATE_OPTIONAL_ZWJ,
     [EMOJI_DFA_CLASS_TAG_SPEC]      = EMOJI_DFA_STATE_TAG_SPEC,
-    [EMOJI_DFA_CLASS_TAG_TERM]      = EMOJI_DFA_STATE_TAG_TERM,
+    [EMOJI_DFA_CLASS_TAG_TERM]      = EMOJI_DFA_STATE_TAG_EMPTY,
     [EMOJI_DFA_CLASS_ZWJ]           = EMOJI_DFA_STATE_ZWJ,
   },
   [EMOJI_DFA_STATE_TAG_SPEC] = {
