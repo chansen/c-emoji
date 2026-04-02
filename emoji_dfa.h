@@ -42,7 +42,6 @@
  */
 #ifndef EMOJI_DFA_H
 #define EMOJI_DFA_H
-#include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -110,7 +109,7 @@ _Static_assert(EMOJI_DFA_CLASS_COUNT <= EMOJI_DFA_RECORD_STATE_SHIFT,
 #endif
 
 /* clang-format off */
-static const emoji_dfa_state_t
+static const uint8_t
 emoji_dfa_table[EMOJI_DFA_STATE_COUNT][EMOJI_DFA_CLASS_COUNT] = {
   [EMOJI_DFA_STATE_START] = {
     [EMOJI_DFA_CLASS_OTHER]         = EMOJI_DFA_STATE_START,
@@ -194,7 +193,7 @@ static inline bool emoji_dfa_is_start(emoji_dfa_state_t state) {
 
 static inline emoji_dfa_state_t emoji_dfa_step(emoji_dfa_state_t state,
                                                emoji_dfa_class_t klass) {
-  return emoji_dfa_table[state][klass];
+  return (emoji_dfa_state_t)emoji_dfa_table[state][klass];
 }
 
 static inline emoji_dfa_state_t emoji_dfa_step_record(emoji_dfa_state_t state,
