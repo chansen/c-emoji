@@ -14,9 +14,6 @@ static int TestsRun    = 0;
 static int TestsPassed = 0;
 static int TestsFailed = 0;
 
-static const char* FailedNames[512];
-static size_t      FailedCount = 0;
-
 static bool sequences_equal(const emoji_scan_range_t* got, size_t got_n,
                             const emoji_scan_range_t* exp, size_t exp_n) {
   if (got_n != exp_n)
@@ -57,8 +54,6 @@ static void run_one(const char* name,
     TestsFailed++;
     printf("FAIL - %s\n", name);
     print_diff(out, got_n, exp, exp_n);
-    if (FailedCount < sizeof(FailedNames) / sizeof(FailedNames[0]))
-      FailedNames[FailedCount++] = name;
   }
 }
 
@@ -91,13 +86,7 @@ static void print_summary(void) {
   printf("Total:  %d\n", TestsRun);
   printf("Passed: %d\n", TestsPassed);
   printf("Failed: %d\n", TestsFailed);
-  printf("========================================\n");
-  if (FailedCount > 0) {
-    printf("\nFailed tests:\n");
-    for (size_t i = 0; i < FailedCount; i++)
-      printf("  - %s\n", FailedNames[i]);
-  }
-  printf("\n");
+  printf("========================================\n\n");
 }
 
 int main(void) {
