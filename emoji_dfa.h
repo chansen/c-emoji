@@ -173,14 +173,14 @@ emoji_dfa_table[EMOJI_DFA_STATE_COUNT][EMOJI_DFA_CLASS_COUNT] = {
 };
 /* clang-format on */
 
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
+_Static_assert(EMOJI_DFA_STATE_RI == EMOJI_DFA_STATE_TERMINAL + 6,
+               "accepting states must be contiguous from TERMINAL to RI");
+#endif
+
 static inline bool emoji_dfa_is_accepting(emoji_dfa_state_t state) {
-  return state == EMOJI_DFA_STATE_TERMINAL ||
-         state == EMOJI_DFA_STATE_EMOJI ||
-         state == EMOJI_DFA_STATE_MODIFIER_BASE ||
-         state == EMOJI_DFA_STATE_OPTIONAL_ZWJ ||
-         state == EMOJI_DFA_STATE_KEYCAP_VS ||
-         state == EMOJI_DFA_STATE_TAG_BASE ||
-         state == EMOJI_DFA_STATE_RI;
+  return (unsigned)(state - EMOJI_DFA_STATE_TERMINAL) <=
+         (unsigned)(EMOJI_DFA_STATE_RI - EMOJI_DFA_STATE_TERMINAL);
 }
 
 static inline bool emoji_dfa_is_boundary(emoji_dfa_state_t state) {
