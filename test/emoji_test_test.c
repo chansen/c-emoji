@@ -67,7 +67,7 @@ static void test_sequence(uint32_t* cps,
                           int lineno) {
   stat->run++;
 
-  emoji_scan_sequence_t out[1];
+  emoji_scan_range_t out[1];
   size_t n = emoji_scan_strict(cps, len, out, 1);
   if (n != 1 || out[0].start != 0 || out[0].end != len - 1) {
     stat->failed++;
