@@ -190,6 +190,18 @@ codepoint after the span.
 | `emoji_ucd.h`          | Unicode property tries — `Emoji`, `Emoji_Modifier_Base`, `Emoji_Presentation` |
 | `emoji_ucd_classify.h` | Maps codepoints to DFA character classes |
 
+## Static memory
+
+| Component                                        | Size         |
+|:-------------------------------------------------|-------------:|
+| `emoji_ucd_is_emoji` trie                        |    952 bytes |
+| `emoji_ucd_is_modifier_base` trie                |    520 bytes |
+| `emoji_ucd_is_presentation` trie                 |    744 bytes |
+| DFA transition table (13×13 × `sizeof(uint8_t)`) |    169 bytes |
+| Total static data                                |  2,385 bytes |
+
+All data is `static const`, living in the `.rodata` segment. Zero global 
+mutable state.
 
 ## Deviations from UTS #51
  
