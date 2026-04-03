@@ -15,16 +15,14 @@ static void test_type(const char* name,
                       size_t len,
                       emoji_sequence_type_t expected_type) {
   emoji_dfa_state_t state = EMOJI_DFA_STATE_START;
-  uint32_t classes = 0, accepted_classes = 0;
+  uint32_t bitmask = 0;
 
   for (size_t i = 0; i < len; i++) {
     emoji_dfa_class_t klass = emoji_ucd_classify(cps[i]);
-    state = emoji_dfa_step_record(state, klass, &classes);
-    if (emoji_dfa_is_accepting(state))
-      accepted_classes = classes;
+    state = emoji_dfa_step_record(state, klass, &bitmask);
   }
 
-  emoji_sequence_type_t got = emoji_dfa_classify_type(accepted_classes);
+  emoji_sequence_type_t got = emoji_dfa_classify_type(bitmask);
   bool ok = got == expected_type;
 
   TestsRun++;
@@ -42,16 +40,14 @@ static void test_style(const char* name,
                        size_t len,
                        emoji_presentation_style_t expected_style) {
   emoji_dfa_state_t state = EMOJI_DFA_STATE_START;
-  uint32_t classes = 0, accepted_classes = 0;
+  uint32_t bitmask = 0;
 
   for (size_t i = 0; i < len; i++) {
     emoji_dfa_class_t klass = emoji_ucd_classify(cps[i]);
-    state = emoji_dfa_step_record(state, klass, &classes);
-    if (emoji_dfa_is_accepting(state))
-      accepted_classes = classes;
+    state = emoji_dfa_step_record(state, klass, &bitmask);
   }
 
-  emoji_presentation_style_t got = emoji_dfa_classify_style(accepted_classes);
+  emoji_presentation_style_t got = emoji_dfa_classify_style(bitmask);
   bool ok = got == expected_style;
 
   TestsRun++;

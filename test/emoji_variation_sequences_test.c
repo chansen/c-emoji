@@ -74,19 +74,25 @@ static void test_variation_sequence(uint32_t base,
   }
 
   emoji_dfa_state_t state = EMOJI_DFA_STATE_START;
-  uint32_t bitmask = 0, accepted_bitmask = 0;
+  uint32_t bitmask = 0;
   for (size_t i = 0; i < 2; i++) {
     emoji_dfa_class_t klass = emoji_ucd_classify(cps[i]);
     state = emoji_dfa_step_record(state, klass, &bitmask);
-    if (emoji_dfa_is_accepting(state))
-      accepted_bitmask = bitmask;
   }
 
-  emoji_presentation_style_t got = emoji_dfa_classify_style(accepted_bitmask);
-  if (got != stat->style) {
+  emoji_sequence_type_t got_type = emoji_dfa_classify_type(bitmask);
+  if (got_type != EMOJI_SEQUENCE_BASIC) {
+    stat->failed++;
+    printf("FAIL [%s]: type got %d expected %d (U+%04X U+%04X) at line %d\n",
+           stat->name, got_type, EMOJI_SEQUENCE_BASIC, base, vs, lineno);
+    return;
+  }
+
+  emoji_presentation_style_t got_style = emoji_dfa_classify_style(bitmask);
+  if (got_style != stat->style) {
     stat->failed++;
     printf("FAIL [%s]: style got %d expected %d (U+%04X U+%04X) at line %d\n",
-           stat->name, got, stat->style, base, vs, lineno);
+           stat->name, got_style, stat->style, base, vs, lineno);
     return;
   }
 

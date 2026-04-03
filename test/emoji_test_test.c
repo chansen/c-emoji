@@ -2,8 +2,7 @@
  * Tests all emoji sequences from unicode-data/emoji-test.txt against the 
  * scanner, bucketed by qualification status.
  *
- * Each sequence is fed through emoji_scan_strict() and verified accepted,
- * then classified via emoji_dfa_step_record().
+ * Each sequence is fed through emoji_scan_strict().
  */
 #include <stdbool.h>
 #include <stdint.h>
