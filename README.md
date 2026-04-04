@@ -133,6 +133,19 @@ Presentation style:
 | `EMOJI_PRESENTATION_TEXT`    | VS-15 (U+FE0E) present                        |
 | `EMOJI_PRESENTATION_DEFAULT` | No VS — consult `emoji_ucd_is_presentation()` |
 
+## Emoji presentation
+ 
+`emoji_presentation_resolve()` resolves the fully determined presentation
+style of an accepted sequence:
+
+```c
+emoji_presentation_style_t style = emoji_dfa_classify_style(accepted_bitmask);
+emoji_sequence_type_t      type  = emoji_dfa_classify_type(accepted_bitmask);
+ 
+style = emoji_presentation_resolve(type, style, codepoints[seq_start]);
+// style is now EMOJI_PRESENTATION_EMOJI or EMOJI_PRESENTATION_TEXT
+```
+
 ## Semantic validation
 
 The scanner accepts all structurally valid sequences. Callers requiring
@@ -142,9 +155,8 @@ stricter conformance should validate emitted sequences as needed:
   the combination has a defined RGI rendering.
 - **Tag sequences** — validate tag characters against the subdivision codes
   in `emoji-sequences.txt`.
-- **Presentation** — for `EMOJI_PRESENTATION_DEFAULT`, call
-  `emoji_ucd_is_presentation()` to determine whether the codepoint renders
-  as emoji or text by default.
+- **Presentation** — use `emoji_presentation_resolve()` to resolve
+  `EMOJI_PRESENTATION_DEFAULT` to a fully determined EMOJI or TEXT result.
 
 ## Example: emoji segmentation
 
@@ -187,6 +199,7 @@ codepoint after the span.
 | `emoji_class.h`        | Result types — `emoji_sequence_type_t`, `emoji_presentation_style_t` |
 | `emoji_dfa.h`          | DFA core — state machine, transition table, `emoji_dfa_step()`, `emoji_dfa_step_record()` |
 | `emoji_dfa_classify.h` | Post-scan classification from recorded class bitmask |
+| `emoji_presentation.h` | Resolves presentation style from sequence type and presentation style — `emoji_presentation_resolve()` |
 | `emoji_ucd.h`          | Unicode property tries — `Emoji`, `Emoji_Modifier_Base`, `Emoji_Presentation` |
 | `emoji_ucd_classify.h` | Maps codepoints to DFA character classes |
 
