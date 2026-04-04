@@ -1,7 +1,7 @@
-# c-emoji — Unicode Emoji Segmentation and Extraction
+# c-emoji — Unicode Emoji Segmentation
 
-A header-only C library for Unicode emoji segmentation and extraction 
-implementing [UTS #51 v17.0.0](https://www.unicode.org/reports/tr51/tr51-29.html).
+A header-only C library for Unicode emoji segmentation implementing 
+[UTS #51 v17.0.0](https://www.unicode.org/reports/tr51/tr51-29.html).
 
 The core is a DFA that classifies and segments emoji sequences in a single
 O(n) pass with no heap allocation. It can be used directly for custom
@@ -103,7 +103,7 @@ next sequence. If the retry also lands on START — meaning the codepoint cannot
 open any sequence, such as a lone ZWJ or a bare tag character — it must be
 skipped entirely so it is not included in the next sequence's range.
 
-### Snapshotting accepted classes
+### Snapshotting accepted bitmask
 
 The bitmask accumulates across the entire current attempt, including any 
 codepoints seen after the last accepting state. Snapshot it each time an
@@ -131,7 +131,7 @@ Presentation style:
 |------------------------------|-----------------------------------------------|
 | `EMOJI_PRESENTATION_EMOJI`   | VS-16 (U+FE0F) present                        |
 | `EMOJI_PRESENTATION_TEXT`    | VS-15 (U+FE0E) present                        |
-| `EMOJI_PRESENTATION_DEFAULT` | No VS — consult `emoji_ucd_is_presentation()` |
+| `EMOJI_PRESENTATION_DEFAULT` | No VS — consult `emoji_presentation_resolve()`|
 
 ## Emoji presentation
  
@@ -199,7 +199,7 @@ codepoint after the span.
 | `emoji_class.h`        | Result types — `emoji_sequence_type_t`, `emoji_presentation_style_t` |
 | `emoji_dfa.h`          | DFA core — state machine, transition table, `emoji_dfa_step()`, `emoji_dfa_step_record()` |
 | `emoji_dfa_classify.h` | Post-scan classification from recorded class bitmask |
-| `emoji_presentation.h` | Resolves presentation style from sequence type and presentation style — `emoji_presentation_resolve()` |
+| `emoji_presentation.h` | Resolves presentation style from sequence type and presentation style — `emoji_presentation_resolve()`, `emoji_presentation_resolve_no_vs()` |
 | `emoji_ucd.h`          | Unicode property tries — `Emoji`, `Emoji_Modifier_Base`, `Emoji_Presentation` |
 | `emoji_ucd_classify.h` | Maps codepoints to DFA character classes |
 
@@ -243,13 +243,12 @@ matching the only tag sequences defined in `emoji-sequences.txt` in Unicode
 17.0.0 (`gbeng`, `gbsct`, `gbwls`).
 
 **Keycap bases not accepted as bare emoji** — The digits 0–9, `#`, and `*`
-carry the `Emoji` property in Unicode and would therefore be accepted as
-standalone emoji sequences under the UTS #51 grammar.  This implementation
-only accepts them when followed by an optional variation selector (VS-15 or
-VS-16) and/or U+20E3 COMBINING ENCLOSING KEYCAP.  A bare digit, `#`, or `*`
-with no following VS or enclosing keycap is never emitted as a sequence.
-This matches RGI practice: no bare keycap base appears in
-`emoji-sequences.txt`.
+carry the `Emoji` property and would therefore be accepted as standalone 
+emoji sequences under the UTS #51 grammar.  This implementation only accepts 
+them when followed by an optional variation selector (VS-15 or VS-16) and/or 
+U+20E3 COMBINING ENCLOSING KEYCAP.  A bare digit, `#`, or `*` with no 
+following VS or enclosing keycap is never emitted as a sequence. This matches 
+RGI practice: no bare keycap base appears in `emoji-sequences.txt`.
 
 ## Conformance tests
  
