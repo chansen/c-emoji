@@ -40,10 +40,17 @@ extern "C" {
 #endif
 
 static inline emoji_dfa_class_t emoji_ucd_classify(uint32_t cp) {
-  if (emoji_ucd_is_keycap_base(cp))
-    return EMOJI_DFA_CLASS_KEYCAP_BASE;
-  if (cp == 0x200D) // ZERO WIDTH JOINER
-    return EMOJI_DFA_CLASS_ZWJ;
+  if (cp <= 0x200D) {
+    // ZERO WIDTH JOINER
+    if (cp == 0x200D)
+      return EMOJI_DFA_CLASS_ZWJ;
+    // U+00A9 COPYRIGHT SIGN; U+00AE REGISTERED SIGN
+    if (cp == 0xA9 || cp == 0xAE)
+      return EMOJI_DFA_CLASS_EMOJI;
+    if (emoji_ucd_is_keycap_base(cp))
+      return EMOJI_DFA_CLASS_KEYCAP_BASE;
+    return EMOJI_DFA_CLASS_OTHER;
+  }
   if (emoji_ucd_is_text_presentation_selector(cp))
     return EMOJI_DFA_CLASS_VS15;
   if (emoji_ucd_is_emoji_presentation_selector(cp))
