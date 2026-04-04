@@ -21,15 +21,14 @@
  * SOFTWARE.
  */
 
-/* Resolves the presentation style of an emoji sequence.
+/* Presentation style resolution for emoji sequences.
  *
- * Combines the variation-selector style with the sequence type and the
- * Emoji_Presentation property of the leading codepoint to produce a
- * fully resolved EMOJI or TEXT result.
+ * emoji_presentation_resolve() combines the variation-selector style with the
+ * sequence type and the Emoji_Presentation property of the leading codepoint
+ * to produce a fully resolved EMOJI or TEXT result.
  *
- * type             structural type of the sequence
- * style            presentation style derived from any variation selector seen
- * first_codepoint  leading codepoint of the sequence
+ * emoji_presentation_resolve_no_vs() is the inner resolver for sequences known
+ * to contain no variation selector.
  */
 #ifndef EMOJI_PRESENTATION_H
 #define EMOJI_PRESENTATION_H
@@ -43,13 +42,9 @@ extern "C" {
 #endif
 
 static inline emoji_presentation_style_t
-emoji_presentation_resolve(emoji_sequence_type_t      type,
-                           emoji_presentation_style_t style,
-                           uint32_t                   first_codepoint) {
-  if (style != EMOJI_PRESENTATION_DEFAULT)
-    return style;
-
-  // No VS: consult sequence type and Emoji_Presentation property
+emoji_presentation_resolve_no_vs(emoji_sequence_type_t type,
+                                 uint32_t              first_codepoint) {
+  // Consult sequence type and Emoji_Presentation property
   switch (type) {
     case EMOJI_SEQUENCE_BASIC:
       return emoji_ucd_is_presentation(first_codepoint)
@@ -71,6 +66,15 @@ emoji_presentation_resolve(emoji_sequence_type_t      type,
       // Unreachable: all defined sequence types are handled above
       return EMOJI_PRESENTATION_EMOJI;
   }
+}
+
+static inline emoji_presentation_style_t
+emoji_presentation_resolve(emoji_sequence_type_t      type,
+                           emoji_presentation_style_t style,
+                           uint32_t                   first_codepoint) {
+  if (style != EMOJI_PRESENTATION_DEFAULT)
+    return style;
+  return emoji_presentation_resolve_no_vs(type, first_codepoint);
 }
 
 #ifdef __cplusplus
