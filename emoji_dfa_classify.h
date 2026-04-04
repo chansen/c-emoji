@@ -23,16 +23,16 @@
 
 /* Sequence classification from a recorded bitmask.
  *
- * These functions interpret the bitmask accumulated by emoji_dfa_step_record()
- * over an accepted sequence. The results are undefined if called on a partial
- * or rejected sequence.
+ * These functions interpret a bitmask snapshot taken at the last accepting
+ * state during a call sequence to emoji_dfa_step_record(). Passing the live
+ * accumulator after the sequence has ended produces meaningless results.
  *
- * emoji_dfa_classify_type() priority order is load-bearing: a ZWJ sequence 
- * containing a modifier will have multiple class bits set; the ordering 
+ * emoji_dfa_classify_type() priority order is load-bearing: a ZWJ sequence
+ * containing a modifier will have multiple class bits set; the ordering
  * ensures the dominant structural feature wins.
  *
- * emoji_dfa_classify_style() returns DEFAULT when no variation selector was 
- * seen. The caller must consult the Emoji_Presentation property to determine 
+ * emoji_dfa_classify_style() returns DEFAULT when no variation selector was
+ * seen. The caller must consult the Emoji_Presentation property to determine
  * the actual rendering for text-default codepoints.
  */
 #ifndef EMOJI_DFA_CLASSIFY_H
