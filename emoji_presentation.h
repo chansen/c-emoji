@@ -25,10 +25,11 @@
  *
  * emoji_presentation_resolve() combines the variation-selector style with the
  * sequence type and the Emoji_Presentation property of the leading codepoint
- * to produce a fully resolved EMOJI or TEXT result.
+ * to produce a fully resolved EMOJI or TEXT result — DEFAULT is never returned.
  *
- * emoji_presentation_resolve_no_vs() is the inner resolver for sequences known
- * to contain no variation selector.
+ * emoji_presentation_resolve_default() is the inner resolver for sequences
+ * known to contain no variation selector. Called directly when the caller has
+ * already established that style == EMOJI_PRESENTATION_DEFAULT.
  */
 #ifndef EMOJI_PRESENTATION_H
 #define EMOJI_PRESENTATION_H
@@ -42,12 +43,12 @@ extern "C" {
 #endif
 
 static inline emoji_presentation_style_t
-emoji_presentation_resolve_no_vs(emoji_sequence_type_t type,
-                                 uint32_t              first_codepoint) {
+emoji_presentation_resolve_default(emoji_sequence_type_t type,
+                                   uint32_t              leading_codepoint) {
   // Consult sequence type and Emoji_Presentation property
   switch (type) {
     case EMOJI_SEQUENCE_BASIC:
-      return emoji_ucd_is_presentation(first_codepoint)
+      return emoji_ucd_is_presentation(leading_codepoint)
                ? EMOJI_PRESENTATION_EMOJI
                : EMOJI_PRESENTATION_TEXT;
     case EMOJI_SEQUENCE_KEYCAP:
@@ -71,10 +72,10 @@ emoji_presentation_resolve_no_vs(emoji_sequence_type_t type,
 static inline emoji_presentation_style_t
 emoji_presentation_resolve(emoji_sequence_type_t      type,
                            emoji_presentation_style_t style,
-                           uint32_t                   first_codepoint) {
+                           uint32_t                   leading_codepoint) {
   if (style != EMOJI_PRESENTATION_DEFAULT)
     return style;
-  return emoji_presentation_resolve_no_vs(type, first_codepoint);
+  return emoji_presentation_resolve_default(type, leading_codepoint);
 }
 
 #ifdef __cplusplus

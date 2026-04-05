@@ -199,7 +199,7 @@ codepoint after the span.
 | `emoji_class.h`        | Result types — `emoji_sequence_type_t`, `emoji_presentation_style_t` |
 | `emoji_dfa.h`          | DFA core — state machine, transition table, `emoji_dfa_step()`, `emoji_dfa_step_record()` |
 | `emoji_dfa_classify.h` | Post-scan classification from recorded class bitmask |
-| `emoji_presentation.h` | Resolves presentation style from sequence type and presentation style — `emoji_presentation_resolve()`, `emoji_presentation_resolve_no_vs()` |
+| `emoji_presentation.h` | Resolves presentation style from sequence type and presentation style — `emoji_presentation_resolve()`, `emoji_presentation_resolve_default()` |
 | `emoji_ucd.h`          | Unicode property tries — `Emoji`, `Emoji_Modifier_Base`, `Emoji_Presentation` |
 | `emoji_ucd_classify.h` | Maps codepoints to DFA character classes |
 
