@@ -188,6 +188,18 @@ int main(void) {
     emoji_scan_range_t exp[] = {{0, 1}};
     test_both("Lone modifier + VS-15", cps, 2, exp, 1);
   }
+  // 🏻‍👩 - Lone modifier + ZWJ + emoji (TERMINAL has no ZWJ transition)
+  {
+    uint32_t cps[] = {0x1F3FB, 0x200D, 0x1F469};
+    emoji_scan_range_t exp[] = {{0, 0}, {2, 2}};
+    test_both("Lone modifier + ZWJ + emoji", cps, 3, exp, 2);
+  }
+  // 🏻️‍👩 - Lone modifier + VS-16 + ZWJ + emoji (TERMINAL has no ZWJ transition)
+  {
+    uint32_t cps[] = {0x1F3FB, 0xFE0F, 0x200D, 0x1F469};
+    emoji_scan_range_t exp[] = {{0, 1}, {3, 3}};
+    test_both("Lone modifier + VS-16 + ZWJ + emoji", cps, 4, exp, 2);
+  }
   // 👩‍🦰🏻 - ZWJ hair + trailing modifier (modifier starts new sequence)
   {
     uint32_t cps[] = {0x1F469, 0x200D, 0x1F9B0, 0x1F3FB};
@@ -233,17 +245,17 @@ int main(void) {
     emoji_scan_range_t exp[] = {{0, 1}};
     test_both("Lone RI + VS-15", cps, 2, exp, 1);
   }
-  // 🇸‍👩 - Lone RI + ZWJ + emoji
+  // 🇸‍👩 - Lone RI + ZWJ + emoji (TERMINAL has no ZWJ transition)
   {
     uint32_t cps[] = {0x1F1F8, 0x200D, 0x1F469};
-    emoji_scan_range_t exp[] = {{0, 2}};
-    test_both("Lone RI + ZWJ + emoji", cps, 3, exp, 1);
+    emoji_scan_range_t exp[] = {{0, 0}, {2, 2}};
+    test_both("Lone RI + ZWJ + emoji", cps, 3, exp, 2);
   }
-  // 🇸️‍👩 - Lone RI + VS-16 + ZWJ + emoji
+  // 🇸️‍👩 - Lone RI + VS-16 + ZWJ + emoji (TERMINAL has no ZWJ transition)
   {
     uint32_t cps[] = {0x1F1F8, 0xFE0F, 0x200D, 0x1F469};
-    emoji_scan_range_t exp[] = {{0, 3}};
-    test_both("Lone RI + VS-16 + ZWJ + emoji", cps, 4, exp, 1);
+    emoji_scan_range_t exp[] = {{0, 1}, {3, 3}};
+    test_both("Lone RI + VS-16 + ZWJ + emoji", cps, 4, exp, 2);
   }
   // 🇺🇸‍👩 - RI pair + ZWJ (TERMINAL has no ZWJ transition)
   {
