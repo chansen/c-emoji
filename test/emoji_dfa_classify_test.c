@@ -72,6 +72,8 @@ static void print_summary(void) {
 
 int main(void) {
 
+  // ── Type ────────────────────────────────────────────────────────
+
   // 😀 - basic emoji, no combining characters
   {
     uint32_t c[] = {0x1F600};
@@ -96,6 +98,12 @@ int main(void) {
     test_type("KEYCAP: digit + VS-16 + term", c, 3, EMOJI_SEQUENCE_KEYCAP);
   }
 
+  // 1︎⃣ - keycap with VS-15
+  {
+    uint32_t c[] = {0x0031, 0xFE0E, 0x20E3};
+    test_type("KEYCAP: digit + VS-15 + term", c, 3, EMOJI_SEQUENCE_KEYCAP);
+  }
+
   // 1⃣ - keycap without VS
   {
     uint32_t c[] = {0x0031, 0x20E3};
@@ -113,6 +121,24 @@ int main(void) {
     uint32_t c[] = {0x1F3F4, 0xE0067, 0xE0062, 0xE0065,
                     0xE006E, 0xE0067, 0xE007F};
     test_type("TAG: England flag", c, 7, EMOJI_SEQUENCE_TAG);
+  }
+
+  // 🏴 -  Bare tag base
+  {
+    uint32_t c[] = {0x1F3F4};
+    test_type("BASIC: Bare tag base", c, 1, EMOJI_SEQUENCE_BASIC);
+  }
+
+  // 🏴 - Tag sequence without cancel tag
+  {
+    uint32_t c[] = {0x1F3F4, 0xE0067, 0xE0062};
+    test_type("BASIC: Tag sequence without cancel tag", c, 3, EMOJI_SEQUENCE_BASIC);
+  }
+
+  // 🏴 - Cancel tag without any tag chars
+  {
+    uint32_t c[] = {0x1F3F4, 0xE007F};
+    test_type("BASIC: Cancel tag without any tag chars", c, 2, EMOJI_SEQUENCE_BASIC);
   }
 
   // 👦🏻 - boy with light skin tone
@@ -144,6 +170,8 @@ int main(void) {
     uint32_t c[] = {0x1F468, 0x1F3FB, 0x200D, 0x1F4BB};
     test_type("ZWJ wins over MODIFIER", c, 4, EMOJI_SEQUENCE_ZWJ);
   }
+
+  // ── Style ───────────────────────────────────────────────────────
 
   // 😀 - no variation selector
   {

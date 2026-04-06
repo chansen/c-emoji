@@ -51,9 +51,10 @@ static inline emoji_sequence_type_t emoji_dfa_classify_type(uint32_t recorded_bi
   // Check low 16 bits for class
   if (recorded_bitmask & (1u << EMOJI_DFA_CLASS_ZWJ))
     return EMOJI_SEQUENCE_ZWJ;
-  if (recorded_bitmask & (1u << EMOJI_DFA_CLASS_TAG_SPEC))
-    return EMOJI_SEQUENCE_TAG;
   // Check high 16 bits for state
+  if ((recorded_bitmask & (1u << (EMOJI_DFA_STATE_TAG_SPEC + 16))) &&
+      (recorded_bitmask & (1u << (EMOJI_DFA_STATE_TERMINAL + 16))))
+    return EMOJI_SEQUENCE_TAG;
   if ((recorded_bitmask & (1u << (EMOJI_DFA_STATE_RI + 16))) &&
       (recorded_bitmask & (1u << (EMOJI_DFA_STATE_TERMINAL + 16))))
     return EMOJI_SEQUENCE_FLAG;
