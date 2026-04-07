@@ -176,28 +176,28 @@ int main(void) {
     emoji_scan_range_t exp[] = {{0, 0}};
     test_both("Modifier without base", cps, 1, exp, 1);
   }
-  // 🏻️ - Lone modifier + VS-16
+  // 🏻️ - Lone modifier + VS-16 (Modifier is TERMINAL, has no VS-16 transition)
   {
     uint32_t cps[] = {0x1F3FB, 0xFE0F};
-    emoji_scan_range_t exp[] = {{0, 1}};
+    emoji_scan_range_t exp[] = {{0, 0}};
     test_both("Lone modifier + VS-16", cps, 2, exp, 1);
   }
-  // 🏻︎ - Lone modifier + VS-15
+  // 🏻︎ - Lone modifier + VS-15 (Modifier is TERMINAL, has no VS-15 transition)
   {
     uint32_t cps[] = {0x1F3FB, 0xFE0E};
-    emoji_scan_range_t exp[] = {{0, 1}};
+    emoji_scan_range_t exp[] = {{0, 0}};
     test_both("Lone modifier + VS-15", cps, 2, exp, 1);
   }
-  // 🏻‍👩 - Lone modifier + ZWJ + emoji (TERMINAL has no ZWJ transition)
+  // 🏻‍👩 - Lone modifier + ZWJ + emoji (Modifier is TERMINAL, has no ZWJ transition)
   {
     uint32_t cps[] = {0x1F3FB, 0x200D, 0x1F469};
     emoji_scan_range_t exp[] = {{0, 0}, {2, 2}};
     test_both("Lone modifier + ZWJ + emoji", cps, 3, exp, 2);
   }
-  // 🏻️‍👩 - Lone modifier + VS-16 + ZWJ + emoji (TERMINAL has no ZWJ transition)
+  // 🏻️‍👩 - Lone modifier + VS-16 + ZWJ + emoji (Modifier is TERMINAL, has no ZWJ transition)
   {
     uint32_t cps[] = {0x1F3FB, 0xFE0F, 0x200D, 0x1F469};
-    emoji_scan_range_t exp[] = {{0, 1}, {3, 3}};
+    emoji_scan_range_t exp[] = {{0, 0}, {3, 3}};
     test_both("Lone modifier + VS-16 + ZWJ + emoji", cps, 4, exp, 2);
   }
   // 👩‍🦰🏻 - ZWJ hair + trailing modifier (modifier starts new sequence)
@@ -233,28 +233,28 @@ int main(void) {
     emoji_scan_range_t exp[] = {{0, 0}};
     test_both("Lone RI", cps, 1, exp, 1);
   }
-  // 🇸️ - Lone RI + VS-16
+  // 🇸️ - Lone RI + VS-16 (RI has no VS-16 transition)
   {
-    uint32_t cps[] = {0x1F1F8, 0xFE0F};
-    emoji_scan_range_t exp[] = {{0, 1}};
+    uint32_t cps[] = {0x1F1F8, 0xFE0F}; 
+    emoji_scan_range_t exp[] = {{0, 0}};
     test_both("Lone RI + VS-16", cps, 2, exp, 1);
   }
-  // 🇸︎ - Lone RI + VS-15
+  // 🇸︎ - Lone RI + VS-15 (RI has no VS-15 transition)
   {
     uint32_t cps[] = {0x1F1F8, 0xFE0E};
-    emoji_scan_range_t exp[] = {{0, 1}};
+    emoji_scan_range_t exp[] = {{0, 0}};
     test_both("Lone RI + VS-15", cps, 2, exp, 1);
   }
-  // 🇸‍👩 - Lone RI + ZWJ + emoji (TERMINAL has no ZWJ transition)
+  // 🇸‍👩 - Lone RI + ZWJ + emoji (RI has no ZWJ transition)
   {
     uint32_t cps[] = {0x1F1F8, 0x200D, 0x1F469};
     emoji_scan_range_t exp[] = {{0, 0}, {2, 2}};
     test_both("Lone RI + ZWJ + emoji", cps, 3, exp, 2);
   }
-  // 🇸️‍👩 - Lone RI + VS-16 + ZWJ + emoji (TERMINAL has no ZWJ transition)
+  // 🇸️‍👩 - Lone RI + VS-16 + ZWJ + emoji (RI has no VS-16 transition)
   {
     uint32_t cps[] = {0x1F1F8, 0xFE0F, 0x200D, 0x1F469};
-    emoji_scan_range_t exp[] = {{0, 1}, {3, 3}};
+    emoji_scan_range_t exp[] = {{0, 0}, {3, 3}};
     test_both("Lone RI + VS-16 + ZWJ + emoji", cps, 4, exp, 2);
   }
   // 🇺🇸‍👩 - RI pair + ZWJ (TERMINAL has no ZWJ transition)
