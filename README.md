@@ -112,6 +112,40 @@ not any trailing codepoints before the boundary. Pass the snapshot to
 `emoji_dfa_classify_type()` and `emoji_dfa_classify_style()` to determine
 sequence type and presentation style without rescanning.
 
+### Example: text segmentation
+ 
+The DFA naturally segments a codepoint stream into alternating emoji and
+non-emoji spans:
+ 
+```c
+void segment(const uint32_t *codepoints, size_t len) {
+  emoji_dfa_state_t state = EMOJI_DFA_STATE_START;
+  size_t start = 0;
+ 
+  for (size_t i = 0; i < len; i++) {
+    emoji_dfa_class_t klass = emoji_ucd_classify(codepoints[i]);
+    emoji_dfa_state_t next  = emoji_dfa_step(state, klass);
+ 
+    if (emoji_dfa_is_boundary(next)) {
+      if (emoji_dfa_is_accepting(state))
+        printf("EMOJI [%zu, %zu)\n", start, i);
+      next  = emoji_dfa_step(EMOJI_DFA_STATE_START, klass);
+      start = i;
+    }
+ 
+    state = next;
+    if (emoji_dfa_is_start(state))
+      start = i + 1;
+  }
+ 
+  if (start < len && emoji_dfa_is_accepting(state))
+    printf("EMOJI [%zu, %zu)\n", start, len);
+}
+```
+ 
+Ranges are half-open `[start, end)` — `end` is the index of the first
+codepoint after the span.
+
 ## Sequence types
 
 Sequence types follow the Unicode taxonomy:
@@ -131,20 +165,7 @@ Presentation style:
 |------------------------------|-----------------------------------------------|
 | `EMOJI_PRESENTATION_EMOJI`   | VS-16 (U+FE0F) present                        |
 | `EMOJI_PRESENTATION_TEXT`    | VS-15 (U+FE0E) present                        |
-| `EMOJI_PRESENTATION_DEFAULT` | No VS — consult `emoji_presentation_resolve()`|
-
-## Emoji presentation
- 
-`emoji_presentation_resolve()` resolves the fully determined presentation
-style of an accepted sequence:
-
-```c
-emoji_presentation_style_t style = emoji_dfa_classify_style(accepted_bitmask);
-emoji_sequence_type_t      type  = emoji_dfa_classify_type(accepted_bitmask);
- 
-style = emoji_presentation_resolve(type, style, codepoints[seq_start]);
-// style is now EMOJI_PRESENTATION_EMOJI or EMOJI_PRESENTATION_TEXT
-```
+| `EMOJI_PRESENTATION_DEFAULT` | No VS — consult `emoji_ucd_is_presentation()` |
 
 ## Semantic validation
 
@@ -155,41 +176,8 @@ stricter conformance should validate emitted sequences as needed:
   the combination has a defined RGI rendering.
 - **Tag sequences** — validate tag characters against the subdivision codes
   in `emoji-sequences.txt`.
-- **Presentation** — use `emoji_presentation_resolve()` to resolve
+- **Presentation** — use `emoji_ucd_is_presentation()` to resolve
   `EMOJI_PRESENTATION_DEFAULT` to a fully determined EMOJI or TEXT result.
-
-## Example: emoji segmentation
-
-```c
-void segment(const uint32_t *codepoints, size_t len) {
-  emoji_dfa_state_t state = EMOJI_DFA_STATE_START;
-  size_t start = 0;
-
-  for (size_t i = 0; i < len; i++) {
-    emoji_dfa_class_t klass = emoji_ucd_classify(codepoints[i]);
-    emoji_dfa_state_t next  = emoji_dfa_step(state, klass);
-
-    if (emoji_dfa_is_boundary(next)) {
-      if (emoji_dfa_is_accepting(state))
-        printf("EMOJI [%zu, %zu)\n", start, i);
-      next  = emoji_dfa_step(EMOJI_DFA_STATE_START, klass);
-      start = i;
-    }
-
-    state = next;
-    if (emoji_dfa_is_start(state))
-      start = i + 1;
-  }
-
-  if (start < len) {
-    if (emoji_dfa_is_accepting(state))
-      printf("EMOJI [%zu, %zu)\n", start, len);
-  }
-}
-```
-
-Ranges are half-open `[start, end)` — `end` is the index of the first
-codepoint after the span.
 
 ## File overview
 
@@ -198,7 +186,7 @@ codepoint after the span.
 | `emoji_scan.h`         | Scanner implementation — `emoji_scan_strict()`, `emoji_scan_greedy()`, `emoji_scan_range_t` |
 | `emoji_class.h`        | Result types — `emoji_sequence_type_t`, `emoji_presentation_style_t` |
 | `emoji_dfa.h`          | DFA core — state machine, transition table, `emoji_dfa_step()`, `emoji_dfa_step_record()` |
-| `emoji_dfa_classify.h` | Post-scan classification from recorded class bitmask |
+| `emoji_dfa_classify.h` | Post-scan classification from recorded bitmask |
 | `emoji_presentation.h` | Resolves presentation style from sequence type and presentation style — `emoji_presentation_resolve()`, `emoji_presentation_resolve_default()` |
 | `emoji_ucd.h`          | Unicode property tries — `Emoji`, `Emoji_Modifier_Base`, `Emoji_Presentation` |
 | `emoji_ucd_classify.h` | Maps codepoints to DFA character classes |
@@ -213,8 +201,7 @@ codepoint after the span.
 | DFA transition table (13×13 × `sizeof(uint8_t)`) |    169 bytes |
 | Total static data                                |  2,385 bytes |
 
-All data is `static const`, living in the `.rodata` segment. Zero global 
-mutable state.
+All data is `static const`. Zero global mutable state.
 
 ## Deviations from UTS #51
  
