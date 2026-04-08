@@ -112,6 +112,19 @@ not any trailing codepoints before the boundary. Pass the snapshot to
 `emoji_dfa_classify_type()` and `emoji_dfa_classify_style()` to determine
 sequence type and presentation style without rescanning.
 
+### Resolving presentation style
+
+`emoji_presentation_resolve()` combines the variation-selector style, the
+sequence type, and the `Emoji_Presentation` property of the leading codepoint
+to produce a fully resolved result:
+
+```c
+emoji_sequence_type_t      type  = emoji_dfa_classify_type(accepted_bitmask);
+emoji_presentation_style_t style = emoji_dfa_classify_style(accepted_bitmask);
+style = emoji_presentation_resolve(type, style, codepoints[seq_start]);
+// style is now EMOJI_PRESENTATION_EMOJI or EMOJI_PRESENTATION_TEXT
+```
+
 ### Example: text segmentation
  
 The DFA naturally segments a codepoint stream into alternating emoji and
