@@ -35,7 +35,7 @@
 #define EMOJI_PRESENTATION_H
 #include <stdint.h>
 
-#include "emoji_class.h"
+#include "emoji_types.h"
 #include "emoji_ucd.h"
 
 #ifdef __cplusplus

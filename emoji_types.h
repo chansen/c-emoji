@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-/* Emoji sequence classification.
+/* Emoji types.
  *
  * emoji_sequence_type_t identifies the structural type of an sequence:
  *   BASIC    - a single emoji codepoint with an optional variation selector.
@@ -38,8 +38,8 @@
  *   TEXT     - VS-15 (U+FE0E) was present; render as text.
  *   EMOJI    - VS-16 (U+FE0F) was present; render as emoji.
  */
-#ifndef EMOJI_CLASS_H
-#define EMOJI_CLASS_H
+#ifndef EMOJI_TYPES_H
+#define EMOJI_TYPES_H
 #include <stddef.h>
 #include <stdint.h>
 
@@ -65,4 +65,4 @@ typedef enum {
 #ifdef __cplusplus
 }
 #endif
-#endif // EMOJI_CLASS_H
+#endif // EMOJI_TYPES_H

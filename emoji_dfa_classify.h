@@ -40,7 +40,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "emoji_class.h"
+#include "emoji_types.h"
 #include "emoji_dfa.h"
 
 #ifdef __cplusplus
