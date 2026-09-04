@@ -201,10 +201,14 @@ stricter conformance should validate emitted sequences as needed:
 | `emoji_dfa.h`          | DFA core — state machine, transition table, `emoji_dfa_step()`, `emoji_dfa_step_record()` |
 | `emoji_dfa_classify.h` | Post-scan classification from recorded bitmask |
 | `emoji_presentation.h` | Resolves presentation style from sequence type and presentation style — `emoji_presentation_resolve()`, `emoji_presentation_resolve_default()` |
-| `emoji_ucd.h`          | Unicode property tries — `Emoji`, `Emoji_Modifier_Base`, `Emoji_Presentation` |
+| `emoji_ucd.h`          | UCD predicate interface — `Emoji`, `Emoji_Modifier_Base`, `Emoji_Presentation`, plus small structural predicates (keycap, tag, RI, VS, modifier). Selects `emoji_ucd_builtin.h` or `emoji_ucd_icu.h` |
+| `emoji_ucd_builtin.h`  | Default backend for the three properties above, via bundled two-level compressed tries. No dependencies |
+| `emoji_ucd_icu.h`      | Optional ICU4C-backed alternative, selected with `EMOJI_UCD_USE_ICU`. See [UCD backend selection](#ucd-backend-selection) |
 | `emoji_ucd_classify.h` | Maps codepoints to DFA character classes |
 
 ## Static memory
+
+With the default builtin UCD backend:
 
 | Component                                        | Size         |
 |:-------------------------------------------------|-------------:|
@@ -214,7 +218,38 @@ stricter conformance should validate emitted sequences as needed:
 | DFA transition table (13×13 × `sizeof(uint8_t)`) |    169 bytes |
 | Total static data                                |  2,385 bytes |
 
-All data is `static const`. Zero global mutable state.
+All data is `static const`. Zero global mutable state. Building with
+`EMOJI_UCD_USE_ICU` (see below) drops these three tries in favor of calls
+into libicuuc, trading this table for an external library dependency.
+
+## UCD backend selection
+
+`emoji_ucd_is_emoji()`, `emoji_ucd_is_modifier_base()`, and
+`emoji_ucd_is_presentation()` have two interchangeable-by-signature
+implementations, chosen at compile time:
+
+- **`emoji_ucd_builtin.h`** (default) — the bundled tries described above.
+  No dependencies, pinned to Unicode 17.0.0.
+- **`emoji_ucd_icu.h`** — delegates to ICU4C's `u_hasBinaryProperty()`.
+  Define `EMOJI_UCD_USE_ICU` before the first `#include "emoji_ucd.h"`
+  and link against ICU4C's common library, e.g.:
+
+  ```sh
+  cc ... -DEMOJI_UCD_USE_ICU $(pkg-config --cflags --libs icu-uc)
+  ```
+
+  `make test-icu` builds and runs the existing test suite against this
+  backend; it is opt-in and separate from `make test` / `make all`, which
+  stay dependency-free.
+
+**These two backends are not guaranteed to agree.** Results from the ICU4C
+backend depend on the Unicode Character Database version bundled with
+whichever ICU4C is linked, rather than the Unicode version targeted by
+this project. Check the linked version with `u_getUnicodeVersion()`.
+
+A linked ICU4C older than the UCD version a given codepoint was assigned
+in will disagree with `emoji_ucd_builtin.h`, and with this project's own
+`emoji-data.txt`-based conformance tests, on that codepoint.
 
 ## Deviations from UTS #51
  
@@ -265,7 +300,8 @@ files for emoji 17.0.0.
 
 ## Requirements
 
-C99 or later
+C99 or later. ICU4C (`icu-uc`) is additionally required only when built
+with `EMOJI_UCD_USE_ICU` — see [UCD backend selection](#ucd-backend-selection).
 
 ## Unicode version
 
