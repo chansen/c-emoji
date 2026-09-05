@@ -34,14 +34,12 @@
  * Requires linking against ICU4C's common library, e.g.:
  *   cc ... $(pkg-config --cflags --libs icu-uc)
  *
- * CAUTION — Unicode version skew: results reflect the Unicode Character
- * Database bundled with whichever ICU4C is linked, not the Unicode version
- * this project targets and ships under unicode-data/. Call
- * u_getUnicodeVersion() (declared right in <unicode/uchar.h>) to check the
- * linked version. A linked ICU4C older than the UCD version a given
- * codepoint was assigned in will disagree with emoji_ucd_builtin.h, and
- * with this project's own emoji-data.txt-based conformance tests, on that
- * codepoint.
+ * Note — Unicode version skew: results reflect the Unicode Character
+ * Database bundled with whichever ICU4C is linked, not the Unicode
+ * version this project targets and ships under unicode-data/. A linked
+ * ICU4C older than the Unicode version this project targets will cause
+ * failures in the data-driven conformance tests, on codepoints the older 
+ * UCD hasn't yet assigned emoji properties to.
  *
  * Do not include this header directly — include emoji_ucd.h, which selects
  * between this and emoji_ucd_builtin.h.

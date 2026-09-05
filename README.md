@@ -242,14 +242,12 @@ implementations, chosen at compile time:
   backend; it is opt-in and separate from `make test` / `make all`, which
   stay dependency-free.
 
-**These two backends are not guaranteed to agree.** Results from the ICU4C
-backend depend on the Unicode Character Database version bundled with
-whichever ICU4C is linked, rather than the Unicode version targeted by
-this project. Check the linked version with `u_getUnicodeVersion()`.
-
-A linked ICU4C older than the UCD version a given codepoint was assigned
-in will disagree with `emoji_ucd_builtin.h`, and with this project's own
-`emoji-data.txt`-based conformance tests, on that codepoint.
+**These two backends are not guaranteed to agree.** Results from the
+ICU4C backend depend on the Unicode Character Database version bundled
+with whichever ICU4C is linked, rather than the Unicode version targeted
+by this project. A linked ICU4C older than the Unicode version this
+project targets will cause failures in the data-driven conformance
+tests, on codepoints the older UCD hasn't yet assigned emoji properties to.
 
 ## Deviations from UTS #51
  
