@@ -31,9 +31,9 @@
  * containing a modifier will have multiple class bits set; the ordering
  * ensures the dominant structural feature wins.
  *
- * emoji_dfa_classify_style() returns DEFAULT when no variation selector was
- * seen. The caller must consult the Emoji_Presentation property to determine
- * the actual rendering for text-default codepoints.
+ * emoji_dfa_classify_style() returns UNSPECIFIED when no variation selector
+ * was seen. The caller must consult the Emoji_Presentation property to
+ * determine the actual rendering for text-default codepoints.
  */
 #ifndef EMOJI_DFA_CLASSIFY_H
 #define EMOJI_DFA_CLASSIFY_H
@@ -71,7 +71,7 @@ static inline emoji_presentation_style_t emoji_dfa_classify_style(uint32_t recor
     return EMOJI_PRESENTATION_TEXT;
   if (recorded_bitmask & (1u << EMOJI_DFA_CLASS_VS16))
     return EMOJI_PRESENTATION_EMOJI;
-  return EMOJI_PRESENTATION_DEFAULT;
+  return EMOJI_PRESENTATION_UNSPECIFIED;
 }
 
 #ifdef __cplusplus

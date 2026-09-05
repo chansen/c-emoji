@@ -33,10 +33,10 @@
  *   ZWJ      - two or more emoji joined by U+200D zero width joiners.
  *
  * emoji_presentation_style_t indicates how the sequence should be rendered:
- *   DEFAULT  - no variation selector present; consult emoji_ucd_is_presentation()
- *              to determine whether the codepoint is emoji or text by default.
- *   TEXT     - VS-15 (U+FE0E) was present; render as text.
- *   EMOJI    - VS-16 (U+FE0F) was present; render as emoji.
+ *   UNSPECIFIED  - no variation selector present; consult
+ *                  emoji_ucd_is_presentation().
+ *   TEXT         - VS-15 (U+FE0E) was present; render as text.
+ *   EMOJI        - VS-16 (U+FE0F) was present; render as emoji.
  */
 #ifndef EMOJI_TYPES_H
 #define EMOJI_TYPES_H
@@ -57,7 +57,7 @@ typedef enum {
 } emoji_sequence_type_t;
 
 typedef enum {
-  EMOJI_PRESENTATION_DEFAULT,
+  EMOJI_PRESENTATION_UNSPECIFIED,
   EMOJI_PRESENTATION_TEXT,
   EMOJI_PRESENTATION_EMOJI,
 } emoji_presentation_style_t;

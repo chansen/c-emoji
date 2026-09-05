@@ -176,7 +176,7 @@ int main(void) {
   // 😀 - no variation selector
   {
     uint32_t c[] = {0x1F600};
-    test_style("DEFAULT: no VS", c, 1, EMOJI_PRESENTATION_DEFAULT);
+    test_style("UNSPECIFIED: no VS", c, 1, EMOJI_PRESENTATION_UNSPECIFIED);
   }
 
   // ☺️ - VS-16 emoji presentation
@@ -212,7 +212,7 @@ int main(void) {
   // 🇺🇸 - flag has no VS
   {
     uint32_t c[] = {0x1F1FA, 0x1F1F8};
-    test_style("DEFAULT: RI flag no VS", c, 2, EMOJI_PRESENTATION_DEFAULT);
+    test_style("UNSPECIFIED: RI flag no VS", c, 2, EMOJI_PRESENTATION_UNSPECIFIED);
   }
 
   print_summary();

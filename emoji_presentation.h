@@ -25,11 +25,12 @@
  *
  * emoji_presentation_resolve() combines the variation-selector style with the
  * sequence type and the Emoji_Presentation property of the leading codepoint
- * to produce a fully resolved EMOJI or TEXT result — DEFAULT is never returned.
+ * to produce a fully resolved EMOJI or TEXT result — UNSPECIFIED is never
+ * returned.
  *
- * emoji_presentation_resolve_default() is the inner resolver for sequences
+ * emoji_presentation_resolve_unspecified() is the inner resolver for sequences
  * known to contain no variation selector. Called directly when the caller has
- * already established that style == EMOJI_PRESENTATION_DEFAULT.
+ * already established that style == EMOJI_PRESENTATION_UNSPECIFIED.
  */
 #ifndef EMOJI_PRESENTATION_H
 #define EMOJI_PRESENTATION_H
@@ -43,8 +44,8 @@ extern "C" {
 #endif
 
 static inline emoji_presentation_style_t
-emoji_presentation_resolve_default(emoji_sequence_type_t type,
-                                   uint32_t              leading_codepoint) {
+emoji_presentation_resolve_unspecified(emoji_sequence_type_t type,
+                                       uint32_t              leading_codepoint) {
   // Consult sequence type and Emoji_Presentation property
   switch (type) {
     case EMOJI_SEQUENCE_BASIC:
@@ -73,9 +74,9 @@ static inline emoji_presentation_style_t
 emoji_presentation_resolve(emoji_sequence_type_t      type,
                            emoji_presentation_style_t style,
                            uint32_t                   leading_codepoint) {
-  if (style != EMOJI_PRESENTATION_DEFAULT)
+  if (style != EMOJI_PRESENTATION_UNSPECIFIED)
     return style;
-  return emoji_presentation_resolve_default(type, leading_codepoint);
+  return emoji_presentation_resolve_unspecified(type, leading_codepoint);
 }
 
 #ifdef __cplusplus

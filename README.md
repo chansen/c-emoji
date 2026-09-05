@@ -174,11 +174,11 @@ Sequence types follow the Unicode taxonomy:
 
 Presentation style:
 
-| Style                        | Meaning                                       |
-|------------------------------|-----------------------------------------------|
-| `EMOJI_PRESENTATION_EMOJI`   | VS-16 (U+FE0F) present                        |
-| `EMOJI_PRESENTATION_TEXT`    | VS-15 (U+FE0E) present                        |
-| `EMOJI_PRESENTATION_DEFAULT` | No VS — consult `emoji_ucd_is_presentation()` |
+| Style                            | Meaning                                       |
+|----------------------------------|-----------------------------------------------|
+| `EMOJI_PRESENTATION_EMOJI`       | VS-16 (U+FE0F) present                        |
+| `EMOJI_PRESENTATION_TEXT`        | VS-15 (U+FE0E) present                        |
+| `EMOJI_PRESENTATION_UNSPECIFIED` | No VS — consult `emoji_ucd_is_presentation()` |
 
 ## Semantic validation
 
@@ -190,7 +190,7 @@ stricter conformance should validate emitted sequences as needed:
 - **Tag sequences** — validate tag characters against the subdivision codes
   in `emoji-sequences.txt`.
 - **Presentation** — use `emoji_ucd_is_presentation()` to resolve
-  `EMOJI_PRESENTATION_DEFAULT` to a fully determined EMOJI or TEXT result.
+  `EMOJI_PRESENTATION_UNSPECIFIED` to a fully determined EMOJI or TEXT result.
 
 ## File overview
 
