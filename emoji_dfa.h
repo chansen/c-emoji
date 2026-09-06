@@ -202,6 +202,16 @@ static inline emoji_dfa_state_t emoji_dfa_step_record(emoji_dfa_state_t state,
   return state;
 }
 
+static inline bool emoji_dfa_recorded_bitmask_contains_class(uint32_t recorded_bitmask,
+                                                             emoji_dfa_class_t klass) {
+  return recorded_bitmask & (1u << klass);
+}
+
+static inline bool emoji_dfa_recorded_bitmask_contains_state(uint32_t recorded_bitmask,
+                                                             emoji_dfa_state_t state) {
+  return recorded_bitmask & (1u << (state + EMOJI_DFA_RECORD_STATE_SHIFT));
+}
+
 #ifdef __cplusplus
 }
 #endif
