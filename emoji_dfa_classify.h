@@ -47,36 +47,36 @@
 extern "C" {
 #endif
 
-static inline emoji_sequence_type_t emoji_dfa_classify_type(uint32_t recorded_bitmask) {
-  if (emoji_dfa_recorded_bitmask_contains_class(recorded_bitmask,
+static inline emoji_sequence_type_t emoji_dfa_classify_type(uint32_t snapshot_bitmask) {
+  if (emoji_dfa_recorded_bitmask_contains_class(snapshot_bitmask,
                                                 EMOJI_DFA_CLASS_ZWJ))
     return EMOJI_SEQUENCE_ZWJ;
-  if (emoji_dfa_recorded_bitmask_contains_state(recorded_bitmask,
+  if (emoji_dfa_recorded_bitmask_contains_state(snapshot_bitmask,
                                                 EMOJI_DFA_STATE_TAG_SPEC) &&
-      emoji_dfa_recorded_bitmask_contains_state(recorded_bitmask,
+      emoji_dfa_recorded_bitmask_contains_state(snapshot_bitmask,
                                                 EMOJI_DFA_STATE_TERMINAL))
     return EMOJI_SEQUENCE_TAG;
-  if (emoji_dfa_recorded_bitmask_contains_state(recorded_bitmask,
+  if (emoji_dfa_recorded_bitmask_contains_state(snapshot_bitmask,
                                                 EMOJI_DFA_STATE_RI) &&
-      emoji_dfa_recorded_bitmask_contains_state(recorded_bitmask,
+      emoji_dfa_recorded_bitmask_contains_state(snapshot_bitmask,
                                                 EMOJI_DFA_STATE_TERMINAL))
     return EMOJI_SEQUENCE_FLAG;
-  if (emoji_dfa_recorded_bitmask_contains_class(recorded_bitmask,
+  if (emoji_dfa_recorded_bitmask_contains_class(snapshot_bitmask,
                                                 EMOJI_DFA_CLASS_MODIFIER_BASE) &&
-      emoji_dfa_recorded_bitmask_contains_class(recorded_bitmask,
+      emoji_dfa_recorded_bitmask_contains_class(snapshot_bitmask,
                                                 EMOJI_DFA_CLASS_MODIFIER))
     return EMOJI_SEQUENCE_MODIFIER;
-  if (emoji_dfa_recorded_bitmask_contains_class(recorded_bitmask,
+  if (emoji_dfa_recorded_bitmask_contains_class(snapshot_bitmask,
                                                 EMOJI_DFA_CLASS_KEYCAP_TERM))
     return EMOJI_SEQUENCE_KEYCAP;
   return EMOJI_SEQUENCE_BASIC;
 }
 
-static inline emoji_presentation_style_t emoji_dfa_classify_style(uint32_t recorded_bitmask) {
-  if (emoji_dfa_recorded_bitmask_contains_class(recorded_bitmask,
+static inline emoji_presentation_style_t emoji_dfa_classify_style(uint32_t snapshot_bitmask) {
+  if (emoji_dfa_recorded_bitmask_contains_class(snapshot_bitmask,
                                                 EMOJI_DFA_CLASS_VS15))
     return EMOJI_PRESENTATION_TEXT;
-  if (emoji_dfa_recorded_bitmask_contains_class(recorded_bitmask,
+  if (emoji_dfa_recorded_bitmask_contains_class(snapshot_bitmask,
                                                 EMOJI_DFA_CLASS_VS16))
     return EMOJI_PRESENTATION_EMOJI;
   return EMOJI_PRESENTATION_UNSPECIFIED;
