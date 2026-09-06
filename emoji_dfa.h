@@ -198,18 +198,19 @@ static inline emoji_dfa_state_t emoji_dfa_step_record(emoji_dfa_state_t state,
                                                       uint32_t* recorded_bitmask) {
   state = emoji_dfa_step(state, klass);
   if (state != EMOJI_DFA_STATE_START && state != EMOJI_DFA_STATE_REJECT)
-    *recorded_bitmask |= (1u << klass) | (1u << (state + EMOJI_DFA_RECORD_STATE_SHIFT));
+    *recorded_bitmask |= (UINT32_C(1) << klass) | 
+                         (UINT32_C(1) << (state + EMOJI_DFA_RECORD_STATE_SHIFT));
   return state;
 }
 
 static inline bool emoji_dfa_recorded_bitmask_contains_class(uint32_t recorded_bitmask,
                                                              emoji_dfa_class_t klass) {
-  return recorded_bitmask & (1u << klass);
+  return recorded_bitmask & (UINT32_C(1) << klass);
 }
 
 static inline bool emoji_dfa_recorded_bitmask_contains_state(uint32_t recorded_bitmask,
                                                              emoji_dfa_state_t state) {
-  return recorded_bitmask & (1u << (state + EMOJI_DFA_RECORD_STATE_SHIFT));
+  return recorded_bitmask & (UINT32_C(1) << (state + EMOJI_DFA_RECORD_STATE_SHIFT));
 }
 
 #ifdef __cplusplus
