@@ -82,14 +82,7 @@ static void test_sequence(uint32_t* cps,
     return;
   }
 
-  emoji_dfa_state_t state = EMOJI_DFA_STATE_START;
-  uint32_t bitmask = 0;
-  for (size_t i = 0; i < len; i++) {
-    emoji_dfa_class_t klass = emoji_ucd_classify(cps[i]);
-    state = emoji_dfa_step_record(state, klass, &bitmask);
-  }
-
-  emoji_sequence_type_t got = emoji_dfa_classify_type(bitmask);
+  emoji_sequence_type_t got = emoji_dfa_classify_type(out[0].snapshot_bitmask);
   if (got != stat->type) {
     stat->failed++;
     printf("FAIL [%s]: classify_type got %d expected %d (U+%04X ..) at line %d\n",
