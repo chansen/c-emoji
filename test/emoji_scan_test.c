@@ -108,36 +108,36 @@ int main(void) {
 
   // ── Keycap sequences ──────────────────────────────────────────── 
 
-  // Lone keycap base (rejected — keycap base is not accepted as bare emoji)
+  // 1 - Lone keycap base (rejected — keycap base is not accepted as bare emoji)
   {
     uint32_t cps[] = {0x0031};
     test_both("Lone keycap base", cps, 1, NULL, 0);
   }
-  // Keycap base + VS-15 (no term)
+  // 1︎ - Keycap base + VS-15 (no term)
   {
     uint32_t cps[] = {0x0031, 0xFE0E};
     emoji_scan_range_t exp[] = {{0, 1}};
     test_both("Keycap base + VS-15 (no term)", cps, 2, exp, 1);
   }
-  // Keycap base + VS-16 (no term)
+  // 1️ - Keycap base + VS-16 (no term)
   {
     uint32_t cps[] = {0x0031, 0xFE0F};
     emoji_scan_range_t exp[] = {{0, 1}};
     test_both("Keycap base + VS-16 (no term)", cps, 2, exp, 1);
   }
-  // Keycap base + VS-15 + keycap term
+  // 1︎⃣ - Keycap base + VS-15 + keycap term
   {
     uint32_t cps[] = {0x0031, 0xFE0E, 0x20E3};
     emoji_scan_range_t exp[] = {{0, 2}};
     test_both("Keycap + VS-15 + term", cps, 3, exp, 1);
   }
-  // Keycap base + VS-16 + keycap term
+  // 1️⃣ - Keycap base + VS-16 + keycap term
   {
     uint32_t cps[] = {0x0031, 0xFE0F, 0x20E3};
     emoji_scan_range_t exp[] = {{0, 2}};
     test_both("Keycap + VS-16 + term", cps, 3, exp, 1);
   }
-  // Keycap base + keycap term (no VS)
+  // 1⃣ - Keycap base + keycap term (no VS)
   {
     uint32_t cps[] = {0x0031, 0x20E3};
     emoji_scan_range_t exp[] = {{0, 1}};
