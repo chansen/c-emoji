@@ -43,6 +43,11 @@
  * inclusive, into the codepoints array.  If more sequences are found than
  * max_out allows, the excess are silently discarded.
  *
+ * Each emitted range also carries snapshot_bitmask: the recorded-bitmask
+ * value at the moment that range's sequence was accepted, suitable for
+ * emoji_dfa_classify_type() / emoji_dfa_classify_style() without
+ * rescanning the codepoints.
+ *
  * Neither function performs semantic validation.  Sequences that are
  * structurally valid but have no defined rendering (e.g. two arbitrary emoji
  * joined by ZWJ with no RGI combination) are emitted without error.  Callers
@@ -65,6 +70,7 @@ extern "C" {
 typedef struct {
   size_t start;
   size_t end;
+  uint32_t snapshot_bitmask;
 } emoji_scan_range_t;
 
 static inline size_t emoji_scan_strict(const uint32_t* codepoints,
@@ -73,19 +79,22 @@ static inline size_t emoji_scan_strict(const uint32_t* codepoints,
                                        size_t max_out) {
   emoji_dfa_state_t state = EMOJI_DFA_STATE_START;
   size_t start = 0, count = 0;
+  uint32_t recorded_bitmask = 0;
 
   for (size_t i = 0; i < len && count < max_out; i++) {
     emoji_dfa_class_t klass = emoji_ucd_classify(codepoints[i]);
-    emoji_dfa_state_t next = emoji_dfa_step(state, klass);
+    emoji_dfa_state_t next = emoji_dfa_step_record(state, klass, &recorded_bitmask);
 
     if (emoji_dfa_is_boundary(next)) {
       if (emoji_dfa_is_accepting(state)) {
         out[count++] = (emoji_scan_range_t){
-          .start = start,
-          .end   = i - 1
+          .start            = start,
+          .end              = i - 1,
+          .snapshot_bitmask = recorded_bitmask
         };
       }
-      next  = emoji_dfa_step(EMOJI_DFA_STATE_START, klass);
+      recorded_bitmask = 0;
+      next  = emoji_dfa_step_record(EMOJI_DFA_STATE_START, klass, &recorded_bitmask);
       start = i;
     }
 
@@ -96,8 +105,9 @@ static inline size_t emoji_scan_strict(const uint32_t* codepoints,
 
   if (start < len && count < max_out && emoji_dfa_is_accepting(state)) {
     out[count++] = (emoji_scan_range_t){
-      .start = start, 
-      .end   = len - 1
+      .start            = start,
+      .end              = len - 1,
+      .snapshot_bitmask = recorded_bitmask
     };
   }
   return count;
@@ -110,20 +120,23 @@ static inline size_t emoji_scan_greedy(const uint32_t* codepoints,
   emoji_dfa_state_t state = EMOJI_DFA_STATE_START;
   size_t start = 0, end = 0, count = 0;
   bool has_accept = false;
+  uint32_t recorded_bitmask = 0, accepted_bitmask = 0;
 
   for (size_t i = 0; i < len && count < max_out; i++) {
     emoji_dfa_class_t klass = emoji_ucd_classify(codepoints[i]);
-    emoji_dfa_state_t next = emoji_dfa_step(state, klass);
+    emoji_dfa_state_t next = emoji_dfa_step_record(state, klass, &recorded_bitmask);
 
     if (emoji_dfa_is_boundary(next)) {
       if (has_accept) {
         out[count++] = (emoji_scan_range_t){
-          .start = start, 
-          .end   = end
+          .start            = start,
+          .end              = end,
+          .snapshot_bitmask = accepted_bitmask
         };
         has_accept = false;
       }
-      next  = emoji_dfa_step(EMOJI_DFA_STATE_START, klass);
+      recorded_bitmask = 0;
+      next  = emoji_dfa_step_record(EMOJI_DFA_STATE_START, klass, &recorded_bitmask);
       start = i;
     }
 
@@ -132,6 +145,7 @@ static inline size_t emoji_scan_greedy(const uint32_t* codepoints,
       start = i + 1;
 
     if (emoji_dfa_is_accepting(state)) {
+      accepted_bitmask = recorded_bitmask;
       has_accept = true;
       end = i;
     }
@@ -139,8 +153,9 @@ static inline size_t emoji_scan_greedy(const uint32_t* codepoints,
 
   if (has_accept && count < max_out) {
     out[count++] = (emoji_scan_range_t){
-      .start = start, 
-      .end   = end
+      .start            = start,
+      .end              = end,
+      .snapshot_bitmask = accepted_bitmask
     };
   }
   return count;
