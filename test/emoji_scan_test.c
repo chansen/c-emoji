@@ -8,31 +8,55 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+
 #include "emoji_scan.h"
+#include "emoji_types.h"
+#include "emoji_dfa_classify.h"
+
+typedef struct {
+  size_t start;
+  size_t end;
+  emoji_sequence_type_t type;
+  emoji_presentation_style_t style;
+} test_range_t;
+
+static test_range_t map_scan_range(const emoji_scan_range_t range) {
+  test_range_t test = {0};
+
+  test.start = range.start;
+  test.end   = range.end;
+  test.type  = emoji_dfa_classify_type(range.snapshot_bitmask);
+  test.style = emoji_dfa_classify_style(range.snapshot_bitmask);
+  return test;
+}
 
 static int TestsRun    = 0;
 static int TestsPassed = 0;
 static int TestsFailed = 0;
 
-static bool sequences_equal(const emoji_scan_range_t* got, size_t got_n,
-                            const emoji_scan_range_t* exp, size_t exp_n) {
+static bool sequences_equal(const test_range_t* got, size_t got_n,
+                            const test_range_t* exp, size_t exp_n) {
   if (got_n != exp_n)
     return false;
   for (size_t i = 0; i < got_n; i++) {
     if (got[i].start != exp[i].start || got[i].end != exp[i].end)
       return false;
+    if (got[i].type != exp[i].type || got[i].style != exp[i].style)
+      return false;
   }
   return true;
 }
 
-static void print_diff(const emoji_scan_range_t* got, size_t got_n,
-                       const emoji_scan_range_t* exp, size_t exp_n) {
+static void print_diff(const test_range_t* got, size_t got_n,
+                       const test_range_t* exp, size_t exp_n) {
   size_t max = got_n > exp_n ? got_n : exp_n;
   for (size_t i = 0; i < max; i++) {
     if (i < got_n)
-      printf("  [%zu] got: start=%zu, end=%zu\n", i, got[i].start, got[i].end);
+      printf("  [%zu] got: start=%zu, end=%zu type=%d style=%d\n", i,
+             got[i].start, got[i].end, got[i].type, got[i].style);
     if (i < exp_n)
-      printf("  [%zu] exp: start=%zu, end=%zu\n", i, exp[i].start, exp[i].end);
+      printf("  [%zu] exp: start=%zu, end=%zu type=%d style=%d\n", i,
+             exp[i].start, exp[i].end, exp[i].type, exp[i].style);
   }
 }
 
@@ -40,11 +64,15 @@ static void run_one(const char* name,
                     size_t (*fn)(const uint32_t*, size_t,
                                  emoji_scan_range_t*, size_t),
                     const uint32_t* cps, size_t len,
-                    const emoji_scan_range_t* exp, size_t exp_n) {
+                    const test_range_t* exp, size_t exp_n) {
   emoji_scan_range_t out[8];
-  size_t got_n = fn(cps, len, out, 8);
+  test_range_t got[8];
 
-  bool ok = sequences_equal(out, got_n, exp, exp_n);
+  size_t got_n = fn(cps, len, out, 8);  
+  for (size_t i = 0; i < got_n; i++)
+    got[i] = map_scan_range(out[i]);
+
+  bool ok = sequences_equal(got, got_n, exp, exp_n);
 
   TestsRun++;
   if (ok) {
@@ -53,25 +81,25 @@ static void run_one(const char* name,
   } else {
     TestsFailed++;
     printf("FAIL - %s\n", name);
-    print_diff(out, got_n, exp, exp_n);
+    print_diff(got, got_n, exp, exp_n);
   }
 }
 
 static void test_greedy(const char* name,
                         uint32_t* cps, size_t len,
-                        emoji_scan_range_t* exp, size_t exp_n) {
+                        test_range_t* exp, size_t exp_n) {
   run_one(name, emoji_scan_greedy, cps, len, exp, exp_n);
 }
 
 static void test_strict(const char* name,
                         uint32_t* cps, size_t len,
-                        emoji_scan_range_t* exp, size_t exp_n) {
+                        test_range_t* exp, size_t exp_n) {
   run_one(name, emoji_scan_strict, cps, len, exp, exp_n);
 }
 
 static void test_both(const char* label,
                       uint32_t* cps, size_t len,
-                      emoji_scan_range_t* exp, size_t exp_n) {
+                      test_range_t* exp, size_t exp_n) {
   char name[256];
   snprintf(name, sizeof(name), "%s [greedy]", label);
   run_one(name, emoji_scan_greedy, cps, len, exp, exp_n);
@@ -89,7 +117,26 @@ static void print_summary(void) {
   printf("========================================\n\n");
 }
 
-#define R(s, e) ((emoji_scan_range_t){ .start = (s), .end = (e) })
+#define TR(range_start, range_end, range_type, range_style) \
+  ((test_range_t){                                          \
+      .start = (range_start),                               \
+      .end   = (range_end),                                 \
+      .type  = (range_type),                                \
+      .style = (range_style),                               \
+  })
+
+enum {
+  T_BASIC       = EMOJI_SEQUENCE_BASIC,
+  T_KEYCAP      = EMOJI_SEQUENCE_KEYCAP,
+  T_FLAG        = EMOJI_SEQUENCE_FLAG,
+  T_TAG         = EMOJI_SEQUENCE_TAG,
+  T_MODIFIER    = EMOJI_SEQUENCE_MODIFIER,
+  T_ZWJ         = EMOJI_SEQUENCE_ZWJ,
+  
+  S_UNSPECIFIED = EMOJI_PRESENTATION_UNSPECIFIED,
+  S_TEXT        = EMOJI_PRESENTATION_TEXT,
+  S_EMOJI       = EMOJI_PRESENTATION_EMOJI,
+};
 
 int main(void) {
 
@@ -98,13 +145,18 @@ int main(void) {
   // 😀😃 - Two separate emoji
   {
     uint32_t cps[] = {0x1F600, 0x1F603};
-    emoji_scan_range_t exp[] = {R(0, 0), R(1, 1)};
+    test_range_t exp[] = {
+      TR(0, 0, T_BASIC, S_UNSPECIFIED), 
+      TR(1, 1, T_BASIC, S_UNSPECIFIED)
+    };
     test_both("Adjacent emojis", cps, 2, exp, 2);
   }
   // © - Copyright symbol (text-default emoji)
   {
     uint32_t cps[] = {0x00A9};
-    emoji_scan_range_t exp[] = {R(0, 0)};
+    test_range_t exp[] = {
+      TR(0, 0, T_BASIC, S_UNSPECIFIED)
+    };
     test_both("Text-default emoji", cps, 1, exp, 1);
   }
 
@@ -118,43 +170,57 @@ int main(void) {
   // 1︎ - Keycap base + VS-15 (no term)
   {
     uint32_t cps[] = {0x0031, 0xFE0E};
-    emoji_scan_range_t exp[] = {R(0, 1)};
+    test_range_t exp[] = {
+      TR(0, 1, T_BASIC, S_TEXT)
+    };
     test_both("Keycap base + VS-15 (no term)", cps, 2, exp, 1);
   }
   // 1️ - Keycap base + VS-16 (no term)
   {
     uint32_t cps[] = {0x0031, 0xFE0F};
-    emoji_scan_range_t exp[] = {R(0, 1)};
+    test_range_t exp[] = {
+      TR(0, 1, T_BASIC, S_EMOJI)
+    };
     test_both("Keycap base + VS-16 (no term)", cps, 2, exp, 1);
   }
   // 1︎⃣ - Keycap base + VS-15 + keycap term
   {
     uint32_t cps[] = {0x0031, 0xFE0E, 0x20E3};
-    emoji_scan_range_t exp[] = {R(0, 2)};
+    test_range_t exp[] = {
+      TR(0, 2, T_KEYCAP, S_TEXT)
+    };
     test_both("Keycap + VS-15 + term", cps, 3, exp, 1);
   }
   // 1️⃣ - Keycap base + VS-16 + keycap term
   {
     uint32_t cps[] = {0x0031, 0xFE0F, 0x20E3};
-    emoji_scan_range_t exp[] = {R(0, 2)};
+    test_range_t exp[] = {
+      TR(0, 2, T_KEYCAP, S_EMOJI)
+    };
     test_both("Keycap + VS-16 + term", cps, 3, exp, 1);
   }
   // 1⃣ - Keycap base + keycap term (no VS)
   {
     uint32_t cps[] = {0x0031, 0x20E3};
-    emoji_scan_range_t exp[] = {R(0, 1)};
+    test_range_t exp[] = {
+      TR(0, 1, T_KEYCAP, S_UNSPECIFIED)
+    };
     test_both("Keycap + term (no VS)", cps, 2, exp, 1);
   }
   // Non-keycap emoji + VS-15 + keycap term (VS-15 is dead end, term rejected)
   {
     uint32_t cps[] = {0x1F600, 0xFE0E, 0x20E3};
-    emoji_scan_range_t exp[] = {R(0, 1)};
+    test_range_t exp[] = {
+      TR(0, 1, T_BASIC, S_TEXT)
+    };
     test_both("Emoji + VS-15 + keycap term (rejected)", cps, 3, exp, 1);
   }
   // Non-keycap emoji + VS-16 + keycap term (OPTIONAL_ZWJ has no keycap transition)
   {
     uint32_t cps[] = {0x1F600, 0xFE0F, 0x20E3};
-    emoji_scan_range_t exp[] = {R(0, 1)};
+    test_range_t exp[] = {
+      TR(0, 1, T_BASIC, S_EMOJI)
+    };
     test_both("Emoji + VS-16 + keycap term (rejected)", cps, 3, exp, 1);
   }
 
@@ -163,61 +229,90 @@ int main(void) {
   // 👦🏻 - Boy with light skin tone
   {
     uint32_t cps[] = {0x1F466, 0x1F3FB};
-    emoji_scan_range_t exp[] = {R(0, 1)};
+    test_range_t exp[] = {
+      TR(0, 1, T_MODIFIER, S_UNSPECIFIED)
+    };
     test_both("Emoji + modifier", cps, 2, exp, 1);
   }
   // 👍🏻🏽 - Thumbs up + two modifiers (second modifier is standalone)
   {
     uint32_t cps[] = {0x1F44D, 0x1F3FB, 0x1F3FD};
-    emoji_scan_range_t exp[] = {R(0, 1), R(2, 2)};
+    test_range_t exp[] = {
+      TR(0, 1, T_MODIFIER, S_UNSPECIFIED), 
+      TR(2, 2, T_BASIC,    S_UNSPECIFIED)
+    };
     test_both("Double modifier", cps, 3, exp, 2);
   }
   // 🏻 - Lone modifier (accepted as basic emoji)
   {
     uint32_t cps[] = {0x1F3FB};
-    emoji_scan_range_t exp[] = {R(0, 0)};
+    test_range_t exp[] = {
+      TR(0, 0, T_BASIC, S_UNSPECIFIED)
+    };
     test_both("Modifier without base", cps, 1, exp, 1);
   }
   // 🏻️ - Lone modifier + VS-16 (Modifier is TERMINAL, has no VS-16 transition)
   {
     uint32_t cps[] = {0x1F3FB, 0xFE0F};
-    emoji_scan_range_t exp[] = {R(0, 0)};
+    test_range_t exp[] = {
+      TR(0, 0, T_BASIC, S_UNSPECIFIED)
+    };
     test_both("Lone modifier + VS-16", cps, 2, exp, 1);
   }
   // 🏻︎ - Lone modifier + VS-15 (Modifier is TERMINAL, has no VS-15 transition)
   {
     uint32_t cps[] = {0x1F3FB, 0xFE0E};
-    emoji_scan_range_t exp[] = {R(0, 0)};
+    test_range_t exp[] = {
+      TR(0, 0, T_BASIC, S_UNSPECIFIED)
+    };
     test_both("Lone modifier + VS-15", cps, 2, exp, 1);
   }
   // 🏻‍👩 - Lone modifier + ZWJ + emoji (Modifier is TERMINAL, has no ZWJ transition)
   {
     uint32_t cps[] = {0x1F3FB, 0x200D, 0x1F469};
-    emoji_scan_range_t exp[] = {R(0, 0), R(2, 2)};
+    test_range_t exp[] = {
+      TR(0, 0, T_BASIC, S_UNSPECIFIED),
+      TR(2, 2, T_BASIC, S_UNSPECIFIED)
+    };
     test_both("Lone modifier + ZWJ + emoji", cps, 3, exp, 2);
   }
   // 🏻️‍👩 - Lone modifier + VS-16 + ZWJ + emoji (Modifier is TERMINAL, has no ZWJ transition)
   {
     uint32_t cps[] = {0x1F3FB, 0xFE0F, 0x200D, 0x1F469};
-    emoji_scan_range_t exp[] = {R(0, 0), R(3, 3)};
+    test_range_t exp[] = {
+      TR(0, 0, T_BASIC, S_UNSPECIFIED),
+      TR(3, 3, T_BASIC, S_UNSPECIFIED)
+    };
     test_both("Lone modifier + VS-16 + ZWJ + emoji", cps, 4, exp, 2);
   }
   // 👩‍🦰🏻 - ZWJ hair + trailing modifier (modifier starts new sequence)
   {
     uint32_t cps[] = {0x1F469, 0x200D, 0x1F9B0, 0x1F3FB};
-    emoji_scan_range_t exp[] = {R(0, 2), R(3, 3)};
+    test_range_t exp[] = {
+      TR(0, 2, T_ZWJ,   S_UNSPECIFIED),
+      TR(3, 3, T_BASIC, S_UNSPECIFIED)
+    };
     test_both("Hair emoji + modifier", cps, 4, exp, 2);
   }
   // 🏻🏼 - Two lone modifiers
   {
     uint32_t cps[] = {0x1F3FB, 0x1F3FC};
-    emoji_scan_range_t exp[] = {R(0, 0), R(1, 1)};
+    test_range_t exp[] = {
+      TR(0, 0, T_BASIC, S_UNSPECIFIED),
+      TR(1, 1, T_BASIC, S_UNSPECIFIED)
+    };
     test_both("Two lone modifiers", cps, 2, exp, 2);
   }
   // 🏻🏼🏽🏾🏿 - Five lone modifiers
   {
     uint32_t cps[] = {0x1F3FB, 0x1F3FC, 0x1F3FD, 0x1F3FE, 0x1F3FF};
-    emoji_scan_range_t exp[] = {R(0, 0), R(1, 1), R(2, 2), R(3, 3), R(4, 4)};
+    test_range_t exp[] = {
+      TR(0, 0, T_BASIC, S_UNSPECIFIED),
+      TR(1, 1, T_BASIC, S_UNSPECIFIED),
+      TR(2, 2, T_BASIC, S_UNSPECIFIED),
+      TR(3, 3, T_BASIC, S_UNSPECIFIED),
+      TR(4, 4, T_BASIC, S_UNSPECIFIED)
+    };
     test_both("Multiple lone modifiers", cps, 5, exp, 5);
   }
 
@@ -226,55 +321,78 @@ int main(void) {
   // 🇺🇸 - US flag (RI pair)
   {
     uint32_t cps[] = {0x1F1FA, 0x1F1F8};
-    emoji_scan_range_t exp[] = {R(0, 1)};
+    test_range_t exp[] = {
+      TR(0, 1, T_FLAG, S_UNSPECIFIED)
+    };
     test_both("RI pair", cps, 2, exp, 1);
   }
   // 🇸 - Lone RI
   {
     uint32_t cps[] = {0x1F1F8};
-    emoji_scan_range_t exp[] = {R(0, 0)};
+    test_range_t exp[] = {
+      TR(0, 0, T_BASIC, S_UNSPECIFIED)
+    };
     test_both("Lone RI", cps, 1, exp, 1);
   }
   // 🇸️ - Lone RI + VS-16 (RI has no VS-16 transition)
   {
     uint32_t cps[] = {0x1F1F8, 0xFE0F}; 
-    emoji_scan_range_t exp[] = {R(0, 0)};
+    test_range_t exp[] = {
+      TR(0, 0, T_BASIC, S_UNSPECIFIED)
+    };
     test_both("Lone RI + VS-16", cps, 2, exp, 1);
   }
   // 🇸︎ - Lone RI + VS-15 (RI has no VS-15 transition)
   {
     uint32_t cps[] = {0x1F1F8, 0xFE0E};
-    emoji_scan_range_t exp[] = {R(0, 0)};
+    test_range_t exp[] = {
+      TR(0, 0, T_BASIC, S_UNSPECIFIED)
+    };
     test_both("Lone RI + VS-15", cps, 2, exp, 1);
   }
   // 🇸‍👩 - Lone RI + ZWJ + emoji (RI has no ZWJ transition)
   {
     uint32_t cps[] = {0x1F1F8, 0x200D, 0x1F469};
-    emoji_scan_range_t exp[] = {R(0, 0), R(2, 2)};
+    test_range_t exp[] = {
+      TR(0, 0, T_BASIC, S_UNSPECIFIED),
+      TR(2, 2, T_BASIC, S_UNSPECIFIED)
+    };
     test_both("Lone RI + ZWJ + emoji", cps, 3, exp, 2);
   }
   // 🇸️‍👩 - Lone RI + VS-16 + ZWJ + emoji (RI has no VS-16 transition)
   {
     uint32_t cps[] = {0x1F1F8, 0xFE0F, 0x200D, 0x1F469};
-    emoji_scan_range_t exp[] = {R(0, 0), R(3, 3)};
+    test_range_t exp[] = {
+      TR(0, 0, T_BASIC, S_UNSPECIFIED),
+      TR(3, 3, T_BASIC, S_UNSPECIFIED)
+    };
     test_both("Lone RI + VS-16 + ZWJ + emoji", cps, 4, exp, 2);
   }
   // 🇺🇸‍👩 - RI pair + ZWJ (TERMINAL has no ZWJ transition)
   {
     uint32_t cps[] = {0x1F1FA, 0x1F1F8, 0x200D, 0x1F469};
-    emoji_scan_range_t exp[] = {R(0, 1), R(3, 3)};
+    test_range_t exp[] = {
+      TR(0, 1, T_FLAG,  S_UNSPECIFIED),
+      TR(3, 3, T_BASIC, S_UNSPECIFIED)
+    };
     test_both("RI pair + ZWJ (rejected)", cps, 4, exp, 2);
   }
   // 🇸🇪🇳 - Sweden flag + lone RI (odd count)
   {
     uint32_t cps[] = {0x1F1F8, 0x1F1EA, 0x1F1F3};
-    emoji_scan_range_t exp[] = {R(0, 1), R(2, 2)};
+    test_range_t exp[] = {
+      TR(0, 1, T_FLAG,  S_UNSPECIFIED),
+      TR(2, 2, T_BASIC, S_UNSPECIFIED)
+    };
     test_both("Odd RI count", cps, 3, exp, 2);
   }
   // 🇸😀 - Lone RI followed by emoji
   {
     uint32_t cps[] = {0x1F1F8, 0x1F600};
-    emoji_scan_range_t exp[] = {R(0, 0), R(1, 1)};
+    test_range_t exp[] = {
+      TR(0, 0, T_BASIC, S_UNSPECIFIED),
+      TR(1, 1, T_BASIC, S_UNSPECIFIED)
+    };
     test_both("RI followed by emoji", cps, 2, exp, 2);
   }
 
@@ -293,37 +411,50 @@ int main(void) {
   // ❤️️ - Emoji + double VS-16 (second rejected)
   {
     uint32_t cps[] = {0x2764, 0xFE0F, 0xFE0F};
-    emoji_scan_range_t exp[] = {R(0, 1)};
+    test_range_t exp[] = {
+      TR(0, 1, T_BASIC, S_EMOJI)
+    };
     test_both("Double VS-16", cps, 3, exp, 1);
   }
   // ☺︎︎ - Emoji + double VS-15 (second rejected)
   {
     uint32_t cps[] = {0x263A, 0xFE0E, 0xFE0E};
-    emoji_scan_range_t exp[] = {R(0, 1)};
+    test_range_t exp[] = {
+      TR(0, 1, T_BASIC, S_TEXT)
+    };
     test_both("Emoji + VS-15 + VS-15 (second rejected)", cps, 3, exp, 1);
   }
   // ☺️︎ - Emoji + VS-16 + VS-15 (second rejected)
   {
     uint32_t cps[] = {0x263A, 0xFE0F, 0xFE0E};
-    emoji_scan_range_t exp[] = {R(0, 1)};
+    test_range_t exp[] = {
+      TR(0, 1, T_BASIC, S_EMOJI)
+    };
     test_both("Emoji + VS-16 + VS-15 (second rejected)", cps, 3, exp, 1);
   }
   // ✋️🏻 - VS-16 followed by modifier (modifier starts new sequence)
   {
     uint32_t cps[] = {0x270B, 0xFE0F, 0x1F3FB};
-    emoji_scan_range_t exp[] = {R(0, 1), R(2, 2)};
+    test_range_t exp[] = {
+      TR(0, 1, T_BASIC, S_EMOJI),
+      TR(2, 2, T_BASIC, S_UNSPECIFIED)
+    };
     test_both("VS-16 followed by modifier", cps, 3, exp, 2);
   }
   // ☺︎ - Emoji + VS-15
   {
     uint32_t cps[] = {0x263A, 0xFE0E};
-    emoji_scan_range_t exp[] = {R(0, 1)};
+    test_range_t exp[] = {
+      TR(0, 1, T_BASIC, S_TEXT)
+    };
     test_both("Emoji + VS-15", cps, 2, exp, 1);
   }
   // ☺️ - Emoji + VS-16
   {
     uint32_t cps[] = {0x263A, 0xFE0F};
-    emoji_scan_range_t exp[] = {R(0, 1)};
+    test_range_t exp[] = {
+      TR(0, 1, T_BASIC, S_EMOJI)
+    };
     test_both("Emoji + VS-16", cps, 2, exp, 1);
   }
   // Multiple emoji with different VS
@@ -333,7 +464,11 @@ int main(void) {
       0x263A, 0xFE0E,  // ☺︎
       0x263A           // ☺
     };
-    emoji_scan_range_t exp[] = {R(0, 1), R(2, 3), R(4, 4)};
+    test_range_t exp[] = {
+      TR(0, 1, T_BASIC, S_EMOJI),
+      TR(2, 3, T_BASIC, S_TEXT),
+      TR(4, 4, T_BASIC, S_UNSPECIFIED)
+    };
     test_both("Multiple emoji with different VS", cps, 5, exp, 3);
   }
 
@@ -342,55 +477,78 @@ int main(void) {
   // ☺︎‍👩 - VS-15 + ZWJ (TERMINAL has no ZWJ transition)
   {
     uint32_t cps[] = {0x263A, 0xFE0E, 0x200D, 0x1F469};
-    emoji_scan_range_t exp[] = {R(0, 1), R(3, 3)};
+    test_range_t exp[] = {
+      TR(0, 1, T_BASIC, S_TEXT),
+      TR(3, 3, T_BASIC, S_UNSPECIFIED)
+    };
     test_both("VS-15 + ZWJ (rejected)", cps, 4, exp, 2);
   }
   // ☺️‍👩 - VS-16 + ZWJ + emoji (OPTIONAL_ZWJ allows ZWJ)
   {
     uint32_t cps[] = {0x263A, 0xFE0F, 0x200D, 0x1F469};
-    emoji_scan_range_t exp[] = {R(0, 3)};
+    test_range_t exp[] = {
+      TR(0, 3, T_ZWJ, S_EMOJI)
+    };
     test_both("VS-16 + ZWJ + emoji", cps, 4, exp, 1);
   }
   // 👨︎‍👩 - Modifier_base + VS-15 + ZWJ (TERMINAL has no ZWJ transition)
   {
     uint32_t cps[] = {0x1F466, 0xFE0E, 0x200D, 0x1F469};
-    emoji_scan_range_t exp[] = {R(0, 1), R(3, 3)};
+    test_range_t exp[] = {
+      TR(0, 1, T_BASIC, S_TEXT),
+      TR(3, 3, T_BASIC, S_UNSPECIFIED)
+    };
     test_both("Modifier_base + VS-15 + ZWJ (rejected)", cps, 4, exp, 2);
   }
   // 👨️‍👩 - Modifier_base + VS-16 + ZWJ + emoji (OPTIONAL_ZWJ allows ZWJ)
   {
     uint32_t cps[] = {0x1F468, 0xFE0F, 0x200D, 0x1F469};
-    emoji_scan_range_t exp[] = {R(0, 3)};
+    test_range_t exp[] = {
+      TR(0, 3, T_ZWJ, S_EMOJI)
+    };
     test_both("Modifier_base + VS-16 + ZWJ + emoji", cps, 4, exp, 1);
   }
   // 👨︎‍👩 - Emoji + VS-15 + ZWJ (TERMINAL has no ZWJ — rejected)
   {
     uint32_t cps[] = {0x1F468, 0xFE0E, 0x200D, 0x1F469};
-    emoji_scan_range_t exp[] = {R(0, 1), R(3, 3)};
+    test_range_t exp[] = {
+      TR(0, 1, T_BASIC, S_TEXT),
+      TR(3, 3, T_BASIC, S_UNSPECIFIED)
+    };
     test_both("Emoji + VS-15 + ZWJ (rejected)", cps, 4, exp, 2);
   }
   // 👨️‍👩 - Emoji + VS-16 + ZWJ + emoji
   {
     uint32_t cps[] = {0x1F468, 0xFE0F, 0x200D, 0x1F469};
-    emoji_scan_range_t exp[] = {R(0, 3)};
+    test_range_t exp[] = {
+      TR(0, 3, T_ZWJ, S_EMOJI)
+    };
     test_both("Emoji + VS-16 + ZWJ + emoji", cps, 4, exp, 1);
   }
   // VS-15 blocks modifier too
   {
     uint32_t cps[] = {0x1F44B, 0xFE0E, 0x1F3FB};
-    emoji_scan_range_t exp[] = {R(0, 1), R(2, 2)};
+    test_range_t exp[] = {
+      TR(0, 1, T_BASIC, S_TEXT),
+      TR(2, 2, T_BASIC, S_UNSPECIFIED)
+    };
     test_both("Emoji + VS-15 + modifier", cps, 3, exp, 2);
   }
   // VS-16 blocks modifier too
   {
     uint32_t cps[] = {0x1F44B, 0xFE0F, 0x1F3FB};
-    emoji_scan_range_t exp[] = {R(0, 1), R(2, 2)};
+    test_range_t exp[] = {
+      TR(0, 1, T_BASIC, S_EMOJI),
+      TR(2, 2, T_BASIC, S_UNSPECIFIED)
+    };
     test_both("Emoji + VS-16 + modifier", cps, 3, exp, 2);
   }
   // Modifier + VS-16 (OPTIONAL_ZWJ rejects VS-16)
   {
     uint32_t cps[] = {0x1F44B, 0x1F3FB, 0xFE0F};
-    emoji_scan_range_t exp[] = {R(0, 1)};
+    test_range_t exp[] = {
+      TR(0, 1, T_MODIFIER, S_UNSPECIFIED)
+    };
     test_both("Emoji + modifier + VS-16 (rejected)", cps, 3, exp, 1);
   }
 
@@ -399,25 +557,33 @@ int main(void) {
   // 👨‍👩‍👧 - Family
   {
     uint32_t cps[] = {0x1F468, 0x200D, 0x1F469, 0x200D, 0x1F467};
-    emoji_scan_range_t exp[] = {R(0, 4)};
+    test_range_t exp[] = {
+      TR(0, 4, T_ZWJ, S_UNSPECIFIED)
+    };
     test_both("ZWJ family", cps, 5, exp, 1);
   }
   // 👨‍👩‍👧‍👦 - Family with two children (long ZWJ)
   {
     uint32_t cps[] = {0x1F468, 0x200D, 0x1F469, 0x200D, 0x1F467, 0x200D, 0x1F466};
-    emoji_scan_range_t exp[] = {R(0, 6)};
+    test_range_t exp[] = {
+      TR(0, 6, T_ZWJ, S_UNSPECIFIED)
+    };
     test_both("Long ZWJ sequence (4 emoji)", cps, 7, exp, 1);
   }
   // 👦🏻‍💻 - Modifier + ZWJ + emoji (OPTIONAL_ZWJ allows ZWJ)
   {
     uint32_t cps[] = {0x1F466, 0x1F3FB, 0x200D, 0x1F4BB};
-    emoji_scan_range_t exp[] = {R(0, 3)};
+    test_range_t exp[] = {
+      TR(0, 3, T_ZWJ, S_UNSPECIFIED)
+    };
     test_both("Modifier + ZWJ + emoji", cps, 4, exp, 1);
   }
   // 👨🏻‍💻 - Technologist with skin tone
   {
     uint32_t cps[] = {0x1F468, 0x1F3FB, 0x200D, 0x1F4BB};
-    emoji_scan_range_t exp[] = {R(0, 3)};
+    test_range_t exp[] = {
+      TR(0, 3, T_ZWJ, S_UNSPECIFIED)
+    };
     test_both("ZWJ after modifier (technologist)", cps, 4, exp, 1);
   }
   // ZWJ sequence with VS-16 before ZWJ
@@ -426,7 +592,9 @@ int main(void) {
       0x1F468, 0xFE0F, 0x200D,  // 👨️‍
       0x1F469, 0xFE0F           // 👩️
     };
-    emoji_scan_range_t exp[] = {R(0, 4)};
+    test_range_t exp[] = {
+      TR(0, 4, T_ZWJ, S_EMOJI)
+    };
     test_both("ZWJ sequence: man VS-16 ZWJ woman VS-16", cps, 5, exp, 1);
   }
 
@@ -435,22 +603,31 @@ int main(void) {
   // 👨‍ - Trailing ZWJ (greedy emits prefix, strict drops)
   {
     uint32_t cps[] = {0x1F468, 0x200D};
-    emoji_scan_range_t exp_greedy[] = {R(0, 0)};
+    test_range_t exp_greedy[] = {
+      TR(0, 0, T_BASIC, S_UNSPECIFIED)
+    };
     test_greedy("Trailing ZWJ [greedy]", cps, 2, exp_greedy, 1);
     test_strict("Trailing ZWJ [strict]", cps, 2, NULL, 0);
   }
   // 👨‍‍👩 - Double ZWJ
   {
     uint32_t cps[] = {0x1F468, 0x200D, 0x200D, 0x1F469};
-    emoji_scan_range_t exp_greedy[] = {R(0, 0), R(3, 3)};
-    emoji_scan_range_t exp_strict[] = {R(3, 3)};
+    test_range_t exp_greedy[] = {
+      TR(0, 0, T_BASIC, S_UNSPECIFIED),
+      TR(3, 3, T_BASIC, S_UNSPECIFIED)
+    };
+    test_range_t exp_strict[] = {
+      TR(3, 3, T_BASIC, S_UNSPECIFIED)
+    };
     test_greedy("Double ZWJ [greedy]", cps, 4, exp_greedy, 2);
     test_strict("Double ZWJ [strict]", cps, 4, exp_strict, 1);
   }
   // 👨‍A - ZWJ + non-emoji target
   {
     uint32_t cps[] = {0x1F468, 0x200D, 0x0041};
-    emoji_scan_range_t exp_greedy[] = {R(0, 0)};
+    test_range_t exp_greedy[] = {
+      TR(0, 0, T_BASIC, S_UNSPECIFIED)
+    };
     test_greedy("ZWJ followed by non-emoji [greedy]", cps, 3, exp_greedy, 1);
     test_strict("ZWJ followed by non-emoji [strict]", cps, 3, NULL, 0);
   }
@@ -460,26 +637,40 @@ int main(void) {
   // 1⃣‍👩 - Keycap + ZWJ (TERMINAL has no ZWJ transition)
   {
     uint32_t cps[] = {0x0031, 0x20E3, 0x200D, 0x1F469};
-    emoji_scan_range_t exp[] = {R(0, 1), R(3, 3)};
+    test_range_t exp[] = {
+      TR(0, 1, T_KEYCAP, S_UNSPECIFIED),
+      TR(3, 3, T_BASIC,  S_UNSPECIFIED)
+    };
     test_both("Keycap + ZWJ (rejected)", cps, 4, exp, 2);
   }
   // 1︎⃣‍👩 - VS-15 keycap + ZWJ
   {
     uint32_t cps[] = {0x0031, 0xFE0E, 0x20E3, 0x200D, 0x1F469};
-    emoji_scan_range_t exp[] = {R(0, 2), R(4, 4)};
+    test_range_t exp[] = {
+      TR(0, 2, T_KEYCAP, S_TEXT),
+      TR(4, 4, T_BASIC,  S_UNSPECIFIED)
+    };
     test_both("VS-15 keycap + ZWJ (rejected)", cps, 5, exp, 2);
   }
   // 1️⃣‍👩 - VS-16 keycap + ZWJ
   {
     uint32_t cps[] = {0x0031, 0xFE0F, 0x20E3, 0x200D, 0x1F469};
-    emoji_scan_range_t exp[] = {R(0, 2), R(4, 4)};
+    test_range_t exp[] = {
+      TR(0, 2, T_KEYCAP, S_EMOJI),
+      TR(4, 4, T_BASIC,  S_UNSPECIFIED)
+    };
     test_both("VS-16 keycap + ZWJ (rejected)", cps, 5, exp, 2);
   }
   // 👩‍1️⃣ - Emoji + ZWJ + keycap (keycap base not accepted as ZWJ target)
   {
     uint32_t cps[] = {0x1F469, 0x200D, 0x0031, 0xFE0F, 0x20E3};
-    emoji_scan_range_t exp_greedy[] = {R(0, 0), R(2, 4)};
-    emoji_scan_range_t exp_strict[] = {R(2, 4)};
+    test_range_t exp_greedy[] = {
+      TR(0, 0, T_BASIC,  S_UNSPECIFIED),
+      TR(2, 4, T_KEYCAP, S_EMOJI)
+    };
+    test_range_t exp_strict[] = {
+      TR(2, 4, T_KEYCAP, S_EMOJI)
+    };
     test_greedy("ZWJ + keycap (rejected) [greedy]", cps, 5, exp_greedy, 2);
     test_strict("ZWJ + keycap (rejected) [strict]", cps, 5, exp_strict, 1);
   }
@@ -489,15 +680,23 @@ int main(void) {
   // 👨‍🇸🇪 - Emoji + ZWJ + RI pair (RI not valid as ZWJ target)
   {
     uint32_t cps[] = {0x1F468, 0x200D, 0x1F1F8, 0x1F1EA};
-    emoji_scan_range_t exp_greedy[] = {R(0, 0), R(2, 3)};
-    emoji_scan_range_t exp_strict[] = {R(2, 3)};
+    test_range_t exp_greedy[] = {
+      TR(0, 0, T_BASIC, S_UNSPECIFIED),
+      TR(2, 3, T_FLAG,  S_UNSPECIFIED)
+    };
+    test_range_t exp_strict[] = {
+      TR(2, 3, T_FLAG,  S_UNSPECIFIED)
+    };
     test_greedy("ZWJ + RI flag [greedy]", cps, 4, exp_greedy, 2);
     test_strict("ZWJ + RI flag [strict]", cps, 4, exp_strict, 1);
   }
   // 🇸🇪‍👨 - Flag + ZWJ (TERMINAL has no ZWJ transition)
   {
     uint32_t cps[] = {0x1F1F8, 0x1F1EA, 0x200D, 0x1F468};
-    emoji_scan_range_t exp[] = {R(0, 1), R(3, 3)};
+    test_range_t exp[] = {
+      TR(0, 1, T_FLAG,  S_UNSPECIFIED),
+      TR(3, 3, T_BASIC, S_UNSPECIFIED)
+    };
     test_both("RI flag + ZWJ", cps, 4, exp, 2);
   }
 
@@ -506,14 +705,22 @@ int main(void) {
   // 🏴󠁧󠁢󠁿‍👩 - Tag sequence + ZWJ (TERMINAL has no ZWJ transition)
   {
     uint32_t cps[] = {0x1F3F4, 0xE0067, 0xE0062, 0xE007F, 0x200D, 0x1F469};
-    emoji_scan_range_t exp[] = {R(0, 3), R(5, 5)};
+    test_range_t exp[] = {
+      TR(0, 3, T_TAG,   S_UNSPECIFIED),
+      TR(5, 5, T_BASIC, S_UNSPECIFIED)
+    };
     test_both("Tag sequence + ZWJ (rejected)", cps, 6, exp, 2);
   }
   // 👩‍🏴󠁧󠁢󠁿 - Emoji + ZWJ + tag sequence (tag base not valid as ZWJ target)
   {
     uint32_t cps[] = {0x1F469, 0x200D, 0x1F3F4, 0xE0067, 0xE0062, 0xE007F};
-    emoji_scan_range_t exp_greedy[] = {R(0, 0), R(2, 5)};
-    emoji_scan_range_t exp_strict[] = {R(2, 5)};
+    test_range_t exp_greedy[] = {
+      TR(0, 0, T_BASIC, S_UNSPECIFIED),
+      TR(2, 5, T_TAG,   S_UNSPECIFIED)
+    };
+    test_range_t exp_strict[] = {
+      TR(2, 5, T_TAG,   S_UNSPECIFIED)
+    };
     test_greedy("ZWJ + tag sequence (rejected) [greedy]", cps, 6, exp_greedy, 2);
     test_strict("ZWJ + tag sequence (rejected) [strict]", cps, 6, exp_strict, 1);
   }
@@ -523,56 +730,74 @@ int main(void) {
   // 🏴󠁧󠁢󠁥󠁮󠁧󠁿 - England flag (complete tag sequence)
   {
     uint32_t cps[] = {0x1F3F4, 0xE0067, 0xE0062, 0xE0065, 0xE006E, 0xE0067, 0xE007F};
-    emoji_scan_range_t exp[] = {R(0, 6)};
+    test_range_t exp[] = {
+      TR(0, 6, T_TAG, S_UNSPECIFIED)
+    };
     test_both("Complete tag sequence (England)", cps, 7, exp, 1);
   }
   // 🏴‍😀 - TAG_BASE + ZWJ + emoji (tag base as ZWJ element)
   {
     uint32_t cps[] = {0x1F3F4, 0x200D, 0x1F600};
-    emoji_scan_range_t exp[] = {R(0, 2)};
+    test_range_t exp[] = {
+      TR(0, 2, T_ZWJ, S_UNSPECIFIED)
+    };
     test_both("TAG_BASE + ZWJ + emoji", cps, 3, exp, 1);
   }
   // 🏴️‍😀 - TAG_BASE + VS-16 + ZWJ + emoji
   {
     uint32_t cps[] = {0x1F3F4, 0xFE0F, 0x200D, 0x1F600};
-    emoji_scan_range_t exp[] = {R(0, 3)};
+    test_range_t exp[] = {
+      TR(0, 3, T_ZWJ, S_EMOJI)
+    };
     test_both("TAG_BASE + VS-16 + ZWJ + emoji", cps, 4, exp, 1);
   }
   // 🏴︎ - TAG_BASE + VS-15
   {
     uint32_t cps[] = {0x1F3F4, 0xFE0E};
-    emoji_scan_range_t exp[] = {R(0, 1)};
+    test_range_t exp[] = {
+      TR(0, 1, T_BASIC, S_TEXT)
+    };
     test_both("TAG_BASE + VS-15", cps, 2, exp, 1);
   }
   // TAG_BASE + VS-16 + tag chars + cancel (tag rejected after VS-16)
   {
     uint32_t cps[] = {0x1F3F4, 0xFE0F, 0xE0067, 0xE0062, 0xE007F};
-    emoji_scan_range_t exp[] = {R(0, 1)};
+    test_range_t exp[] = {
+      TR(0, 1, T_BASIC, S_EMOJI)
+    };
     test_both("TAG_BASE + VS-16 + tags (tag rejected)", cps, 5, exp, 1);
   }
   // 😀 + tag chars + cancel (non-tag base, tags rejected)
   {
     uint32_t cps[] = {0x1F600, 0xE0067, 0xE0062, 0xE007F};
-    emoji_scan_range_t exp[] = {R(0, 0)};
+    test_range_t exp[] = {
+      TR(0, 0, T_BASIC, S_UNSPECIFIED)
+    };
     test_both("Emoji + tag chars (rejected)", cps, 4, exp, 1);
   }
   // 😀 + cancel tag (non-tag base, cancel rejected)
   {
     uint32_t cps[] = {0x1F600, 0xE007F};
-    emoji_scan_range_t exp[] = {R(0, 0)};
+    test_range_t exp[] = {
+      TR(0, 0, T_BASIC, S_UNSPECIFIED)
+    };
     test_both("Emoji + cancel tag (rejected)", cps, 2, exp, 1);
   }
   // Tag sequence without cancel tag (greedy emits prefix, strict drops)
   {
     uint32_t cps[] = {0x1F3F4, 0xE0067, 0xE0062};
-    emoji_scan_range_t exp_greedy[] = {R(0, 0)};
+    test_range_t exp_greedy[] = {
+      TR(0, 0, T_BASIC, S_UNSPECIFIED)
+    };
     test_greedy("Tag without cancel [greedy]", cps, 3, exp_greedy, 1);
     test_strict("Tag without cancel [strict]", cps, 3, NULL, 0);
   }
   // Cancel tag without any tag chars (dead-end pending state)
   {
     uint32_t cps[] = {0x1F3F4, 0xE007F};
-    emoji_scan_range_t exp_greedy[] = {R(0, 0)};
+    test_range_t exp_greedy[] = {
+      TR(0, 0, T_BASIC, S_UNSPECIFIED)
+    };
     test_greedy("Cancel tag without specs [greedy]", cps, 2, exp_greedy, 1);
     test_strict("Cancel tag without specs [strict]", cps, 2, NULL, 0);
   }
@@ -582,13 +807,21 @@ int main(void) {
   // 😀👍🏻🇺🇸 - Three different types in sequence
   {
     uint32_t cps[] = {0x1F600, 0x1F44D, 0x1F3FB, 0x1F1FA, 0x1F1F8};
-    emoji_scan_range_t exp[] = {R(0, 0), R(1, 2), R(3, 4)};
+    test_range_t exp[] = {
+      TR(0, 0, T_BASIC,    S_UNSPECIFIED),
+      TR(1, 2, T_MODIFIER, S_UNSPECIFIED),
+      TR(3, 4, T_FLAG,     S_UNSPECIFIED)
+    };
     test_both("Multiple sequences (3 types)", cps, 5, exp, 3);
   }
   // 😀🇸🇪🇳 - Emoji, flag, lone RI
   {
     uint32_t cps[] = {0x1F600, 0x1F1F8, 0x1F1EA, 0x1F1F3};
-    emoji_scan_range_t exp[] = {R(0, 0), R(1, 2), R(3, 3)};
+    test_range_t exp[] = {
+      TR(0, 0, T_BASIC, S_UNSPECIFIED),
+      TR(1, 2, T_FLAG,  S_UNSPECIFIED), 
+      TR(3, 3, T_BASIC, S_UNSPECIFIED)
+    };
     test_both("Emoji then flag then lone RI", cps, 4, exp, 3);
   }
   // 1︎⃣ + ☺️ - Keycap VS-15 then emoji VS-16
@@ -597,7 +830,10 @@ int main(void) {
       0x0031, 0xFE0E, 0x20E3,
       0x263A, 0xFE0F
     };
-    emoji_scan_range_t exp[] = {R(0, 2), R(3, 4)};
+    test_range_t exp[] = {
+      TR(0, 2, T_KEYCAP, S_TEXT),
+      TR(3, 4, T_BASIC,  S_EMOJI)
+    };
     test_both("Keycap VS-15 + Emoji VS-16", cps, 5, exp, 2);
   }
   // Text between emoji sequences
@@ -607,7 +843,10 @@ int main(void) {
       0x0041,          // A
       0x263A, 0xFE0F   // ☺️
     };
-    emoji_scan_range_t exp[] = {R(0, 1), R(3, 4)};
+    test_range_t exp[] = {
+      TR(0, 1, T_BASIC, S_TEXT),
+      TR(3, 4, T_BASIC, S_EMOJI)
+    };
     test_both("VS-15 + text + VS-16", cps, 5, exp, 2);
   }
   // Multiple text codepoints between emoji sequences
@@ -618,7 +857,10 @@ int main(void) {
       0x0042,          // B
       0x263A, 0xFE0F   // ☺️
     };
-    emoji_scan_range_t exp[] = {R(0, 1), R(4, 5)};
+    test_range_t exp[] = {
+      TR(0, 1, T_BASIC, S_TEXT),
+      TR(4, 5, T_BASIC, S_EMOJI)
+    };
     test_both("VS-15 + text + text + VS-16", cps, 6, exp, 2);
   }
 
