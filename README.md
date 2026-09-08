@@ -196,8 +196,8 @@ stricter conformance should validate emitted sequences as needed:
 
 | File                   | Purpose |
 |------------------------|---------|
-| `emoji_scan.h`         | Scanner implementation — `emoji_scan_strict()`, `emoji_scan_greedy()`, `emoji_range_t` |
-| `emoji_range.h`        | Emoji range — `emoji_range_t` |
+| `emoji_scan.h`         | Scanner implementation — `emoji_scan_strict()`, `emoji_scan_greedy()` |
+| `emoji_range.h`        | Emoji range type — `emoji_range_t` |
 | `emoji_types.h`        | Emoji types — `emoji_sequence_type_t`, `emoji_presentation_style_t` |
 | `emoji_dfa.h`          | DFA core — state machine, transition table, `emoji_dfa_step()`, `emoji_dfa_step_record()` |
 | `emoji_dfa_classify.h` | Post-scan classification from recorded bitmask |
