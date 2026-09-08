@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-/* Unicode emoji sequence scanner (UTS #51 v17.0.0).
+/* Unicode emoji sequence scanner.
  *
  * Scans an array of codepoints and returns the position ranges of all emoji 
  * sequences found.
@@ -39,14 +39,9 @@
  *     emitted up to the last accepting state.  Prefer this when scanning a
  *     complete buffer and partial sequences at the end should not be lost.
  *
- * Output sequences are written to out[] as {start, end} index pairs, both
- * inclusive, into the codepoints array.  If more sequences are found than
- * max_out allows, the excess are silently discarded.
- *
- * Each emitted range also carries snapshot_bitmask: the recorded-bitmask
- * value at the moment that range's sequence was accepted, suitable for
- * emoji_dfa_classify_type() / emoji_dfa_classify_style() without
- * rescanning the codepoints.
+ * Output sequences are written to out[] as emoji_range_t values (see
+ * emoji_range.h), indexing into the codepoints array. If more sequences are
+ * found than max_out allows, the excess are silently discarded.
  *
  * Neither function performs semantic validation.  Sequences that are
  * structurally valid but have no defined rendering (e.g. two arbitrary emoji
