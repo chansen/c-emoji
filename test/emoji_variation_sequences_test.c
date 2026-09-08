@@ -8,10 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "emoji_dfa.h"
-#include "emoji_dfa_classify.h"
 #include "emoji_scan.h"
-#include "emoji_ucd_classify.h"
 
 typedef struct {
   const char*                  name;
@@ -64,7 +61,7 @@ static void test_variation_sequence(uint32_t base,
   stat->run++;
 
   uint32_t cps[2] = {base, vs};
-  emoji_scan_range_t out[1];
+  emoji_range_t out[1];
   size_t n = emoji_scan_strict(cps, 2, out, 1);
   if (n != 1 || out[0].start != 0 || out[0].end != 1) {
     stat->failed++;
@@ -73,7 +70,7 @@ static void test_variation_sequence(uint32_t base,
     return;
   }
 
-  emoji_sequence_type_t got_type = emoji_dfa_classify_type(out[0].snapshot_bitmask);
+  emoji_sequence_type_t got_type = out[0].type;
   if (got_type != EMOJI_SEQUENCE_BASIC) {
     stat->failed++;
     printf("FAIL [%s]: type got %d expected %d (U+%04X U+%04X) at line %d\n",
@@ -81,7 +78,7 @@ static void test_variation_sequence(uint32_t base,
     return;
   }
 
-  emoji_presentation_style_t got_style = emoji_dfa_classify_style(out[0].snapshot_bitmask);
+  emoji_presentation_style_t got_style = out[0].style;
   if (got_style != stat->style) {
     stat->failed++;
     printf("FAIL [%s]: style got %d expected %d (U+%04X U+%04X) at line %d\n",

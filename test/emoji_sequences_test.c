@@ -13,10 +13,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "emoji_dfa.h"
-#include "emoji_dfa_classify.h"
 #include "emoji_scan.h"
-#include "emoji_ucd_classify.h"
 
 typedef struct {
   const char*           name;
@@ -73,7 +70,7 @@ static void test_sequence(uint32_t* cps,
                           int lineno) {
   stat->run++;
 
-  emoji_scan_range_t out[1];
+  emoji_range_t out[1];
   size_t n = emoji_scan_strict(cps, len, out, 1);
   if (n != 1 || out[0].start != 0 || out[0].end != len - 1) {
     stat->failed++;
@@ -82,7 +79,7 @@ static void test_sequence(uint32_t* cps,
     return;
   }
 
-  emoji_sequence_type_t got = emoji_dfa_classify_type(out[0].snapshot_bitmask);
+  emoji_sequence_type_t got = out[0].type;
   if (got != stat->type) {
     stat->failed++;
     printf("FAIL [%s]: classify_type got %d expected %d (U+%04X ..) at line %d\n",

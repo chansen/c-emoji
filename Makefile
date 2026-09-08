@@ -2,7 +2,7 @@ CC     := cc
 CFLAGS := -I. -std=c99 -Wall -Wextra -Wpedantic -O2
 
 HEADERS := emoji_types.h emoji_dfa_classify.h emoji_dfa.h \
-           emoji_scan.h emoji_ucd.h emoji_ucd_builtin.h emoji_ucd_icu.h \
+           emoji_range.h emoji_scan.h emoji_ucd.h emoji_ucd_builtin.h emoji_ucd_icu.h \
            emoji_ucd_classify.h emoji_presentation.h
 
 TEST_BINARIES     := emoji_scan_test emoji_dfa_classify_test \

@@ -23,7 +23,7 @@ be decoded first.
 #include "emoji_scan.h"
 
 uint32_t text[] = { 0x1F468, 0x1F3FB, 0x200D, 0x1F4BB }; // 👨🏻‍💻
-emoji_scan_range_t seqs[16];
+emoji_range_t seqs[16];
 
 size_t count = emoji_scan_greedy(text, 4, seqs, 16);
 
@@ -196,7 +196,8 @@ stricter conformance should validate emitted sequences as needed:
 
 | File                   | Purpose |
 |------------------------|---------|
-| `emoji_scan.h`         | Scanner implementation — `emoji_scan_strict()`, `emoji_scan_greedy()`, `emoji_scan_range_t` |
+| `emoji_scan.h`         | Scanner implementation — `emoji_scan_strict()`, `emoji_scan_greedy()`, `emoji_range_t` |
+| `emoji_range.h`        | Emoji range — `emoji_range_t` |
 | `emoji_types.h`        | Emoji types — `emoji_sequence_type_t`, `emoji_presentation_style_t` |
 | `emoji_dfa.h`          | DFA core — state machine, transition table, `emoji_dfa_step()`, `emoji_dfa_step_record()` |
 | `emoji_dfa_classify.h` | Post-scan classification from recorded bitmask |
