@@ -1,14 +1,27 @@
 CC     := cc
 CFLAGS := -I. -std=c99 -Wall -Wextra -Wpedantic -O2
 
-HEADERS := emoji_types.h emoji_dfa_classify.h emoji_dfa.h \
-           emoji_span.h emoji_range.h emoji_scan.h emoji_ucd.h emoji_ucd_builtin.h emoji_ucd_icu.h \
-           emoji_ucd_classify.h emoji_presentation.h
+HEADERS := emoji_dfa.h \
+           emoji_dfa_classify.h \
+           emoji_presentation.h \
+           emoji_range.h \
+           emoji_scan.h \
+           emoji_span.h \
+           emoji_types.h \
+           emoji_ucd.h \
+           emoji_ucd_builtin.h \
+           emoji_ucd_classify.h \
+           emoji_ucd_icu.h
 
-TEST_BINARIES     := emoji_scan_test emoji_dfa_classify_test \
-                      emoji_presentation_test \
-                      emoji_data_test emoji_sequences_test \
-                      emoji_variation_sequences_test emoji_test_test
+TEST_BINARIES := emoji_data_test \
+                 emoji_dfa_classify_test \
+                 emoji_presentation_test \
+                 emoji_scan_test \
+                 emoji_sequences_test \
+                 emoji_test_test \
+                 emoji_variation_sequences_test
+
+
 ICU_TEST_BINARIES := $(addsuffix _icu,$(TEST_BINARIES))
 
 ICU_CFLAGS := $(shell pkg-config --cflags icu-uc 2>/dev/null)
