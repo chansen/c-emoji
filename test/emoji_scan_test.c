@@ -124,8 +124,8 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F600, 0x1F603};
     emoji_range_t exp[] = {
-      RANGE(0, 0, T_BASIC, S_UNSPECIFIED), 
-      RANGE(1, 1, T_BASIC, S_UNSPECIFIED)
+      RANGE(0, 1, T_BASIC, S_UNSPECIFIED), 
+      RANGE(1, 2, T_BASIC, S_UNSPECIFIED)
     };
     test_both("Adjacent emojis", cps, 2, exp, 2);
   }
@@ -133,7 +133,7 @@ int main(void) {
   {
     uint32_t cps[] = {0x00A9};
     emoji_range_t exp[] = {
-      RANGE(0, 0, T_BASIC, S_UNSPECIFIED)
+      RANGE(0, 1, T_BASIC, S_UNSPECIFIED)
     };
     test_both("Text-default emoji", cps, 1, exp, 1);
   }
@@ -149,7 +149,7 @@ int main(void) {
   {
     uint32_t cps[] = {0x0031, 0xFE0E};
     emoji_range_t exp[] = {
-      RANGE(0, 1, T_BASIC, S_TEXT)
+      RANGE(0, 2, T_BASIC, S_TEXT)
     };
     test_both("Keycap base + VS-15 (no term)", cps, 2, exp, 1);
   }
@@ -157,7 +157,7 @@ int main(void) {
   {
     uint32_t cps[] = {0x0031, 0xFE0F};
     emoji_range_t exp[] = {
-      RANGE(0, 1, T_BASIC, S_EMOJI)
+      RANGE(0, 2, T_BASIC, S_EMOJI)
     };
     test_both("Keycap base + VS-16 (no term)", cps, 2, exp, 1);
   }
@@ -165,7 +165,7 @@ int main(void) {
   {
     uint32_t cps[] = {0x0031, 0xFE0E, 0x20E3};
     emoji_range_t exp[] = {
-      RANGE(0, 2, T_KEYCAP, S_TEXT)
+      RANGE(0, 3, T_KEYCAP, S_TEXT)
     };
     test_both("Keycap + VS-15 + term", cps, 3, exp, 1);
   }
@@ -173,7 +173,7 @@ int main(void) {
   {
     uint32_t cps[] = {0x0031, 0xFE0F, 0x20E3};
     emoji_range_t exp[] = {
-      RANGE(0, 2, T_KEYCAP, S_EMOJI)
+      RANGE(0, 3, T_KEYCAP, S_EMOJI)
     };
     test_both("Keycap + VS-16 + term", cps, 3, exp, 1);
   }
@@ -181,7 +181,7 @@ int main(void) {
   {
     uint32_t cps[] = {0x0031, 0x20E3};
     emoji_range_t exp[] = {
-      RANGE(0, 1, T_KEYCAP, S_UNSPECIFIED)
+      RANGE(0, 2, T_KEYCAP, S_UNSPECIFIED)
     };
     test_both("Keycap + term (no VS)", cps, 2, exp, 1);
   }
@@ -189,7 +189,7 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F600, 0xFE0E, 0x20E3};
     emoji_range_t exp[] = {
-      RANGE(0, 1, T_BASIC, S_TEXT)
+      RANGE(0, 2, T_BASIC, S_TEXT)
     };
     test_both("Emoji + VS-15 + keycap term (rejected)", cps, 3, exp, 1);
   }
@@ -197,7 +197,7 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F600, 0xFE0F, 0x20E3};
     emoji_range_t exp[] = {
-      RANGE(0, 1, T_BASIC, S_EMOJI)
+      RANGE(0, 2, T_BASIC, S_EMOJI)
     };
     test_both("Emoji + VS-16 + keycap term (rejected)", cps, 3, exp, 1);
   }
@@ -208,7 +208,7 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F466, 0x1F3FB};
     emoji_range_t exp[] = {
-      RANGE(0, 1, T_MODIFIER, S_UNSPECIFIED)
+      RANGE(0, 2, T_MODIFIER, S_UNSPECIFIED)
     };
     test_both("Emoji + modifier", cps, 2, exp, 1);
   }
@@ -216,8 +216,8 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F44D, 0x1F3FB, 0x1F3FD};
     emoji_range_t exp[] = {
-      RANGE(0, 1, T_MODIFIER, S_UNSPECIFIED), 
-      RANGE(2, 2, T_BASIC,    S_UNSPECIFIED)
+      RANGE(0, 2, T_MODIFIER, S_UNSPECIFIED), 
+      RANGE(2, 3, T_BASIC,    S_UNSPECIFIED)
     };
     test_both("Double modifier", cps, 3, exp, 2);
   }
@@ -225,7 +225,7 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F3FB};
     emoji_range_t exp[] = {
-      RANGE(0, 0, T_BASIC, S_UNSPECIFIED)
+      RANGE(0, 1, T_BASIC, S_UNSPECIFIED)
     };
     test_both("Modifier without base", cps, 1, exp, 1);
   }
@@ -233,7 +233,7 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F3FB, 0xFE0F};
     emoji_range_t exp[] = {
-      RANGE(0, 0, T_BASIC, S_UNSPECIFIED)
+      RANGE(0, 1, T_BASIC, S_UNSPECIFIED)
     };
     test_both("Lone modifier + VS-16", cps, 2, exp, 1);
   }
@@ -241,7 +241,7 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F3FB, 0xFE0E};
     emoji_range_t exp[] = {
-      RANGE(0, 0, T_BASIC, S_UNSPECIFIED)
+      RANGE(0, 1, T_BASIC, S_UNSPECIFIED)
     };
     test_both("Lone modifier + VS-15", cps, 2, exp, 1);
   }
@@ -249,8 +249,8 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F3FB, 0x200D, 0x1F469};
     emoji_range_t exp[] = {
-      RANGE(0, 0, T_BASIC, S_UNSPECIFIED),
-      RANGE(2, 2, T_BASIC, S_UNSPECIFIED)
+      RANGE(0, 1, T_BASIC, S_UNSPECIFIED),
+      RANGE(2, 3, T_BASIC, S_UNSPECIFIED)
     };
     test_both("Lone modifier + ZWJ + emoji", cps, 3, exp, 2);
   }
@@ -258,8 +258,8 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F3FB, 0xFE0F, 0x200D, 0x1F469};
     emoji_range_t exp[] = {
-      RANGE(0, 0, T_BASIC, S_UNSPECIFIED),
-      RANGE(3, 3, T_BASIC, S_UNSPECIFIED)
+      RANGE(0, 1, T_BASIC, S_UNSPECIFIED),
+      RANGE(3, 4, T_BASIC, S_UNSPECIFIED)
     };
     test_both("Lone modifier + VS-16 + ZWJ + emoji", cps, 4, exp, 2);
   }
@@ -267,8 +267,8 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F469, 0x200D, 0x1F9B0, 0x1F3FB};
     emoji_range_t exp[] = {
-      RANGE(0, 2, T_ZWJ,   S_UNSPECIFIED),
-      RANGE(3, 3, T_BASIC, S_UNSPECIFIED)
+      RANGE(0, 3, T_ZWJ,   S_UNSPECIFIED),
+      RANGE(3, 4, T_BASIC, S_UNSPECIFIED)
     };
     test_both("Hair emoji + modifier", cps, 4, exp, 2);
   }
@@ -276,8 +276,8 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F3FB, 0x1F3FC};
     emoji_range_t exp[] = {
-      RANGE(0, 0, T_BASIC, S_UNSPECIFIED),
-      RANGE(1, 1, T_BASIC, S_UNSPECIFIED)
+      RANGE(0, 1, T_BASIC, S_UNSPECIFIED),
+      RANGE(1, 2, T_BASIC, S_UNSPECIFIED)
     };
     test_both("Two lone modifiers", cps, 2, exp, 2);
   }
@@ -285,11 +285,11 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F3FB, 0x1F3FC, 0x1F3FD, 0x1F3FE, 0x1F3FF};
     emoji_range_t exp[] = {
-      RANGE(0, 0, T_BASIC, S_UNSPECIFIED),
-      RANGE(1, 1, T_BASIC, S_UNSPECIFIED),
-      RANGE(2, 2, T_BASIC, S_UNSPECIFIED),
-      RANGE(3, 3, T_BASIC, S_UNSPECIFIED),
-      RANGE(4, 4, T_BASIC, S_UNSPECIFIED)
+      RANGE(0, 1, T_BASIC, S_UNSPECIFIED),
+      RANGE(1, 2, T_BASIC, S_UNSPECIFIED),
+      RANGE(2, 3, T_BASIC, S_UNSPECIFIED),
+      RANGE(3, 4, T_BASIC, S_UNSPECIFIED),
+      RANGE(4, 5, T_BASIC, S_UNSPECIFIED)
     };
     test_both("Multiple lone modifiers", cps, 5, exp, 5);
   }
@@ -300,7 +300,7 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F1FA, 0x1F1F8};
     emoji_range_t exp[] = {
-      RANGE(0, 1, T_FLAG, S_UNSPECIFIED)
+      RANGE(0, 2, T_FLAG, S_UNSPECIFIED)
     };
     test_both("RI pair", cps, 2, exp, 1);
   }
@@ -308,7 +308,7 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F1F8};
     emoji_range_t exp[] = {
-      RANGE(0, 0, T_BASIC, S_UNSPECIFIED)
+      RANGE(0, 1, T_BASIC, S_UNSPECIFIED)
     };
     test_both("Lone RI", cps, 1, exp, 1);
   }
@@ -316,7 +316,7 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F1F8, 0xFE0F}; 
     emoji_range_t exp[] = {
-      RANGE(0, 0, T_BASIC, S_UNSPECIFIED)
+      RANGE(0, 1, T_BASIC, S_UNSPECIFIED)
     };
     test_both("Lone RI + VS-16", cps, 2, exp, 1);
   }
@@ -324,7 +324,7 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F1F8, 0xFE0E};
     emoji_range_t exp[] = {
-      RANGE(0, 0, T_BASIC, S_UNSPECIFIED)
+      RANGE(0, 1, T_BASIC, S_UNSPECIFIED)
     };
     test_both("Lone RI + VS-15", cps, 2, exp, 1);
   }
@@ -332,8 +332,8 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F1F8, 0x200D, 0x1F469};
     emoji_range_t exp[] = {
-      RANGE(0, 0, T_BASIC, S_UNSPECIFIED),
-      RANGE(2, 2, T_BASIC, S_UNSPECIFIED)
+      RANGE(0, 1, T_BASIC, S_UNSPECIFIED),
+      RANGE(2, 3, T_BASIC, S_UNSPECIFIED)
     };
     test_both("Lone RI + ZWJ + emoji", cps, 3, exp, 2);
   }
@@ -341,8 +341,8 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F1F8, 0xFE0F, 0x200D, 0x1F469};
     emoji_range_t exp[] = {
-      RANGE(0, 0, T_BASIC, S_UNSPECIFIED),
-      RANGE(3, 3, T_BASIC, S_UNSPECIFIED)
+      RANGE(0, 1, T_BASIC, S_UNSPECIFIED),
+      RANGE(3, 4, T_BASIC, S_UNSPECIFIED)
     };
     test_both("Lone RI + VS-16 + ZWJ + emoji", cps, 4, exp, 2);
   }
@@ -350,8 +350,8 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F1FA, 0x1F1F8, 0x200D, 0x1F469};
     emoji_range_t exp[] = {
-      RANGE(0, 1, T_FLAG,  S_UNSPECIFIED),
-      RANGE(3, 3, T_BASIC, S_UNSPECIFIED)
+      RANGE(0, 2, T_FLAG,  S_UNSPECIFIED),
+      RANGE(3, 4, T_BASIC, S_UNSPECIFIED)
     };
     test_both("RI pair + ZWJ (rejected)", cps, 4, exp, 2);
   }
@@ -359,8 +359,8 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F1F8, 0x1F1EA, 0x1F1F3};
     emoji_range_t exp[] = {
-      RANGE(0, 1, T_FLAG,  S_UNSPECIFIED),
-      RANGE(2, 2, T_BASIC, S_UNSPECIFIED)
+      RANGE(0, 2, T_FLAG,  S_UNSPECIFIED),
+      RANGE(2, 3, T_BASIC, S_UNSPECIFIED)
     };
     test_both("Odd RI count", cps, 3, exp, 2);
   }
@@ -368,8 +368,8 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F1F8, 0x1F600};
     emoji_range_t exp[] = {
-      RANGE(0, 0, T_BASIC, S_UNSPECIFIED),
-      RANGE(1, 1, T_BASIC, S_UNSPECIFIED)
+      RANGE(0, 1, T_BASIC, S_UNSPECIFIED),
+      RANGE(1, 2, T_BASIC, S_UNSPECIFIED)
     };
     test_both("RI followed by emoji", cps, 2, exp, 2);
   }
@@ -390,7 +390,7 @@ int main(void) {
   {
     uint32_t cps[] = {0x2764, 0xFE0F, 0xFE0F};
     emoji_range_t exp[] = {
-      RANGE(0, 1, T_BASIC, S_EMOJI)
+      RANGE(0, 2, T_BASIC, S_EMOJI)
     };
     test_both("Double VS-16", cps, 3, exp, 1);
   }
@@ -398,7 +398,7 @@ int main(void) {
   {
     uint32_t cps[] = {0x263A, 0xFE0E, 0xFE0E};
     emoji_range_t exp[] = {
-      RANGE(0, 1, T_BASIC, S_TEXT)
+      RANGE(0, 2, T_BASIC, S_TEXT)
     };
     test_both("Emoji + VS-15 + VS-15 (second rejected)", cps, 3, exp, 1);
   }
@@ -406,7 +406,7 @@ int main(void) {
   {
     uint32_t cps[] = {0x263A, 0xFE0F, 0xFE0E};
     emoji_range_t exp[] = {
-      RANGE(0, 1, T_BASIC, S_EMOJI)
+      RANGE(0, 2, T_BASIC, S_EMOJI)
     };
     test_both("Emoji + VS-16 + VS-15 (second rejected)", cps, 3, exp, 1);
   }
@@ -414,8 +414,8 @@ int main(void) {
   {
     uint32_t cps[] = {0x270B, 0xFE0F, 0x1F3FB};
     emoji_range_t exp[] = {
-      RANGE(0, 1, T_BASIC, S_EMOJI),
-      RANGE(2, 2, T_BASIC, S_UNSPECIFIED)
+      RANGE(0, 2, T_BASIC, S_EMOJI),
+      RANGE(2, 3, T_BASIC, S_UNSPECIFIED)
     };
     test_both("VS-16 followed by modifier", cps, 3, exp, 2);
   }
@@ -423,7 +423,7 @@ int main(void) {
   {
     uint32_t cps[] = {0x263A, 0xFE0E};
     emoji_range_t exp[] = {
-      RANGE(0, 1, T_BASIC, S_TEXT)
+      RANGE(0, 2, T_BASIC, S_TEXT)
     };
     test_both("Emoji + VS-15", cps, 2, exp, 1);
   }
@@ -431,7 +431,7 @@ int main(void) {
   {
     uint32_t cps[] = {0x263A, 0xFE0F};
     emoji_range_t exp[] = {
-      RANGE(0, 1, T_BASIC, S_EMOJI)
+      RANGE(0, 2, T_BASIC, S_EMOJI)
     };
     test_both("Emoji + VS-16", cps, 2, exp, 1);
   }
@@ -443,9 +443,9 @@ int main(void) {
       0x263A           // ☺
     };
     emoji_range_t exp[] = {
-      RANGE(0, 1, T_BASIC, S_EMOJI),
-      RANGE(2, 3, T_BASIC, S_TEXT),
-      RANGE(4, 4, T_BASIC, S_UNSPECIFIED)
+      RANGE(0, 2, T_BASIC, S_EMOJI),
+      RANGE(2, 4, T_BASIC, S_TEXT),
+      RANGE(4, 5, T_BASIC, S_UNSPECIFIED)
     };
     test_both("Multiple emoji with different VS", cps, 5, exp, 3);
   }
@@ -456,8 +456,8 @@ int main(void) {
   {
     uint32_t cps[] = {0x263A, 0xFE0E, 0x200D, 0x1F469};
     emoji_range_t exp[] = {
-      RANGE(0, 1, T_BASIC, S_TEXT),
-      RANGE(3, 3, T_BASIC, S_UNSPECIFIED)
+      RANGE(0, 2, T_BASIC, S_TEXT),
+      RANGE(3, 4, T_BASIC, S_UNSPECIFIED)
     };
     test_both("VS-15 + ZWJ (rejected)", cps, 4, exp, 2);
   }
@@ -465,7 +465,7 @@ int main(void) {
   {
     uint32_t cps[] = {0x263A, 0xFE0F, 0x200D, 0x1F469};
     emoji_range_t exp[] = {
-      RANGE(0, 3, T_ZWJ, S_EMOJI)
+      RANGE(0, 4, T_ZWJ, S_EMOJI)
     };
     test_both("VS-16 + ZWJ + emoji", cps, 4, exp, 1);
   }
@@ -473,8 +473,8 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F466, 0xFE0E, 0x200D, 0x1F469};
     emoji_range_t exp[] = {
-      RANGE(0, 1, T_BASIC, S_TEXT),
-      RANGE(3, 3, T_BASIC, S_UNSPECIFIED)
+      RANGE(0, 2, T_BASIC, S_TEXT),
+      RANGE(3, 4, T_BASIC, S_UNSPECIFIED)
     };
     test_both("Modifier_base + VS-15 + ZWJ (rejected)", cps, 4, exp, 2);
   }
@@ -482,7 +482,7 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F468, 0xFE0F, 0x200D, 0x1F469};
     emoji_range_t exp[] = {
-      RANGE(0, 3, T_ZWJ, S_EMOJI)
+      RANGE(0, 4, T_ZWJ, S_EMOJI)
     };
     test_both("Modifier_base + VS-16 + ZWJ + emoji", cps, 4, exp, 1);
   }
@@ -490,8 +490,8 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F468, 0xFE0E, 0x200D, 0x1F469};
     emoji_range_t exp[] = {
-      RANGE(0, 1, T_BASIC, S_TEXT),
-      RANGE(3, 3, T_BASIC, S_UNSPECIFIED)
+      RANGE(0, 2, T_BASIC, S_TEXT),
+      RANGE(3, 4, T_BASIC, S_UNSPECIFIED)
     };
     test_both("Emoji + VS-15 + ZWJ (rejected)", cps, 4, exp, 2);
   }
@@ -499,7 +499,7 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F468, 0xFE0F, 0x200D, 0x1F469};
     emoji_range_t exp[] = {
-      RANGE(0, 3, T_ZWJ, S_EMOJI)
+      RANGE(0, 4, T_ZWJ, S_EMOJI)
     };
     test_both("Emoji + VS-16 + ZWJ + emoji", cps, 4, exp, 1);
   }
@@ -507,8 +507,8 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F44B, 0xFE0E, 0x1F3FB};
     emoji_range_t exp[] = {
-      RANGE(0, 1, T_BASIC, S_TEXT),
-      RANGE(2, 2, T_BASIC, S_UNSPECIFIED)
+      RANGE(0, 2, T_BASIC, S_TEXT),
+      RANGE(2, 3, T_BASIC, S_UNSPECIFIED)
     };
     test_both("Emoji + VS-15 + modifier", cps, 3, exp, 2);
   }
@@ -516,8 +516,8 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F44B, 0xFE0F, 0x1F3FB};
     emoji_range_t exp[] = {
-      RANGE(0, 1, T_BASIC, S_EMOJI),
-      RANGE(2, 2, T_BASIC, S_UNSPECIFIED)
+      RANGE(0, 2, T_BASIC, S_EMOJI),
+      RANGE(2, 3, T_BASIC, S_UNSPECIFIED)
     };
     test_both("Emoji + VS-16 + modifier", cps, 3, exp, 2);
   }
@@ -525,7 +525,7 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F44B, 0x1F3FB, 0xFE0F};
     emoji_range_t exp[] = {
-      RANGE(0, 1, T_MODIFIER, S_UNSPECIFIED)
+      RANGE(0, 2, T_MODIFIER, S_UNSPECIFIED)
     };
     test_both("Emoji + modifier + VS-16 (rejected)", cps, 3, exp, 1);
   }
@@ -536,7 +536,7 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F468, 0x200D, 0x1F469, 0x200D, 0x1F467};
     emoji_range_t exp[] = {
-      RANGE(0, 4, T_ZWJ, S_UNSPECIFIED)
+      RANGE(0, 5, T_ZWJ, S_UNSPECIFIED)
     };
     test_both("ZWJ family", cps, 5, exp, 1);
   }
@@ -544,7 +544,7 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F468, 0x200D, 0x1F469, 0x200D, 0x1F467, 0x200D, 0x1F466};
     emoji_range_t exp[] = {
-      RANGE(0, 6, T_ZWJ, S_UNSPECIFIED)
+      RANGE(0, 7, T_ZWJ, S_UNSPECIFIED)
     };
     test_both("Long ZWJ sequence (4 emoji)", cps, 7, exp, 1);
   }
@@ -552,7 +552,7 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F466, 0x1F3FB, 0x200D, 0x1F4BB};
     emoji_range_t exp[] = {
-      RANGE(0, 3, T_ZWJ, S_UNSPECIFIED)
+      RANGE(0, 4, T_ZWJ, S_UNSPECIFIED)
     };
     test_both("Modifier + ZWJ + emoji", cps, 4, exp, 1);
   }
@@ -560,7 +560,7 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F468, 0x1F3FB, 0x200D, 0x1F4BB};
     emoji_range_t exp[] = {
-      RANGE(0, 3, T_ZWJ, S_UNSPECIFIED)
+      RANGE(0, 4, T_ZWJ, S_UNSPECIFIED)
     };
     test_both("ZWJ after modifier (technologist)", cps, 4, exp, 1);
   }
@@ -571,7 +571,7 @@ int main(void) {
       0x1F469, 0xFE0F           // 👩️
     };
     emoji_range_t exp[] = {
-      RANGE(0, 4, T_ZWJ, S_EMOJI)
+      RANGE(0, 5, T_ZWJ, S_EMOJI)
     };
     test_both("ZWJ sequence: man VS-16 ZWJ woman VS-16", cps, 5, exp, 1);
   }
@@ -582,7 +582,7 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F468, 0x200D};
     emoji_range_t exp_greedy[] = {
-      RANGE(0, 0, T_BASIC, S_UNSPECIFIED)
+      RANGE(0, 1, T_BASIC, S_UNSPECIFIED)
     };
     test_greedy("Trailing ZWJ [greedy]", cps, 2, exp_greedy, 1);
     test_strict("Trailing ZWJ [strict]", cps, 2, NULL, 0);
@@ -591,11 +591,11 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F468, 0x200D, 0x200D, 0x1F469};
     emoji_range_t exp_greedy[] = {
-      RANGE(0, 0, T_BASIC, S_UNSPECIFIED),
-      RANGE(3, 3, T_BASIC, S_UNSPECIFIED)
+      RANGE(0, 1, T_BASIC, S_UNSPECIFIED),
+      RANGE(3, 4, T_BASIC, S_UNSPECIFIED)
     };
     emoji_range_t exp_strict[] = {
-      RANGE(3, 3, T_BASIC, S_UNSPECIFIED)
+      RANGE(3, 4, T_BASIC, S_UNSPECIFIED)
     };
     test_greedy("Double ZWJ [greedy]", cps, 4, exp_greedy, 2);
     test_strict("Double ZWJ [strict]", cps, 4, exp_strict, 1);
@@ -604,7 +604,7 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F468, 0x200D, 0x0041};
     emoji_range_t exp_greedy[] = {
-      RANGE(0, 0, T_BASIC, S_UNSPECIFIED)
+      RANGE(0, 1, T_BASIC, S_UNSPECIFIED)
     };
     test_greedy("ZWJ followed by non-emoji [greedy]", cps, 3, exp_greedy, 1);
     test_strict("ZWJ followed by non-emoji [strict]", cps, 3, NULL, 0);
@@ -616,8 +616,8 @@ int main(void) {
   {
     uint32_t cps[] = {0x0031, 0x20E3, 0x200D, 0x1F469};
     emoji_range_t exp[] = {
-      RANGE(0, 1, T_KEYCAP, S_UNSPECIFIED),
-      RANGE(3, 3, T_BASIC,  S_UNSPECIFIED)
+      RANGE(0, 2, T_KEYCAP, S_UNSPECIFIED),
+      RANGE(3, 4, T_BASIC,  S_UNSPECIFIED)
     };
     test_both("Keycap + ZWJ (rejected)", cps, 4, exp, 2);
   }
@@ -625,8 +625,8 @@ int main(void) {
   {
     uint32_t cps[] = {0x0031, 0xFE0E, 0x20E3, 0x200D, 0x1F469};
     emoji_range_t exp[] = {
-      RANGE(0, 2, T_KEYCAP, S_TEXT),
-      RANGE(4, 4, T_BASIC,  S_UNSPECIFIED)
+      RANGE(0, 3, T_KEYCAP, S_TEXT),
+      RANGE(4, 5, T_BASIC,  S_UNSPECIFIED)
     };
     test_both("VS-15 keycap + ZWJ (rejected)", cps, 5, exp, 2);
   }
@@ -634,8 +634,8 @@ int main(void) {
   {
     uint32_t cps[] = {0x0031, 0xFE0F, 0x20E3, 0x200D, 0x1F469};
     emoji_range_t exp[] = {
-      RANGE(0, 2, T_KEYCAP, S_EMOJI),
-      RANGE(4, 4, T_BASIC,  S_UNSPECIFIED)
+      RANGE(0, 3, T_KEYCAP, S_EMOJI),
+      RANGE(4, 5, T_BASIC,  S_UNSPECIFIED)
     };
     test_both("VS-16 keycap + ZWJ (rejected)", cps, 5, exp, 2);
   }
@@ -643,11 +643,11 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F469, 0x200D, 0x0031, 0xFE0F, 0x20E3};
     emoji_range_t exp_greedy[] = {
-      RANGE(0, 0, T_BASIC,  S_UNSPECIFIED),
-      RANGE(2, 4, T_KEYCAP, S_EMOJI)
+      RANGE(0, 1, T_BASIC,  S_UNSPECIFIED),
+      RANGE(2, 5, T_KEYCAP, S_EMOJI)
     };
     emoji_range_t exp_strict[] = {
-      RANGE(2, 4, T_KEYCAP, S_EMOJI)
+      RANGE(2, 5, T_KEYCAP, S_EMOJI)
     };
     test_greedy("ZWJ + keycap (rejected) [greedy]", cps, 5, exp_greedy, 2);
     test_strict("ZWJ + keycap (rejected) [strict]", cps, 5, exp_strict, 1);
@@ -659,11 +659,11 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F468, 0x200D, 0x1F1F8, 0x1F1EA};
     emoji_range_t exp_greedy[] = {
-      RANGE(0, 0, T_BASIC, S_UNSPECIFIED),
-      RANGE(2, 3, T_FLAG,  S_UNSPECIFIED)
+      RANGE(0, 1, T_BASIC, S_UNSPECIFIED),
+      RANGE(2, 4, T_FLAG,  S_UNSPECIFIED)
     };
     emoji_range_t exp_strict[] = {
-      RANGE(2, 3, T_FLAG,  S_UNSPECIFIED)
+      RANGE(2, 4, T_FLAG,  S_UNSPECIFIED)
     };
     test_greedy("ZWJ + RI flag [greedy]", cps, 4, exp_greedy, 2);
     test_strict("ZWJ + RI flag [strict]", cps, 4, exp_strict, 1);
@@ -672,8 +672,8 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F1F8, 0x1F1EA, 0x200D, 0x1F468};
     emoji_range_t exp[] = {
-      RANGE(0, 1, T_FLAG,  S_UNSPECIFIED),
-      RANGE(3, 3, T_BASIC, S_UNSPECIFIED)
+      RANGE(0, 2, T_FLAG,  S_UNSPECIFIED),
+      RANGE(3, 4, T_BASIC, S_UNSPECIFIED)
     };
     test_both("RI flag + ZWJ", cps, 4, exp, 2);
   }
@@ -684,8 +684,8 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F3F4, 0xE0067, 0xE0062, 0xE007F, 0x200D, 0x1F469};
     emoji_range_t exp[] = {
-      RANGE(0, 3, T_TAG,   S_UNSPECIFIED),
-      RANGE(5, 5, T_BASIC, S_UNSPECIFIED)
+      RANGE(0, 4, T_TAG,   S_UNSPECIFIED),
+      RANGE(5, 6, T_BASIC, S_UNSPECIFIED)
     };
     test_both("Tag sequence + ZWJ (rejected)", cps, 6, exp, 2);
   }
@@ -693,11 +693,11 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F469, 0x200D, 0x1F3F4, 0xE0067, 0xE0062, 0xE007F};
     emoji_range_t exp_greedy[] = {
-      RANGE(0, 0, T_BASIC, S_UNSPECIFIED),
-      RANGE(2, 5, T_TAG,   S_UNSPECIFIED)
+      RANGE(0, 1, T_BASIC, S_UNSPECIFIED),
+      RANGE(2, 6, T_TAG,   S_UNSPECIFIED)
     };
     emoji_range_t exp_strict[] = {
-      RANGE(2, 5, T_TAG,   S_UNSPECIFIED)
+      RANGE(2, 6, T_TAG,   S_UNSPECIFIED)
     };
     test_greedy("ZWJ + tag sequence (rejected) [greedy]", cps, 6, exp_greedy, 2);
     test_strict("ZWJ + tag sequence (rejected) [strict]", cps, 6, exp_strict, 1);
@@ -709,7 +709,7 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F3F4, 0xE0067, 0xE0062, 0xE0065, 0xE006E, 0xE0067, 0xE007F};
     emoji_range_t exp[] = {
-      RANGE(0, 6, T_TAG, S_UNSPECIFIED)
+      RANGE(0, 7, T_TAG, S_UNSPECIFIED)
     };
     test_both("Complete tag sequence (England)", cps, 7, exp, 1);
   }
@@ -717,7 +717,7 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F3F4, 0x200D, 0x1F600};
     emoji_range_t exp[] = {
-      RANGE(0, 2, T_ZWJ, S_UNSPECIFIED)
+      RANGE(0, 3, T_ZWJ, S_UNSPECIFIED)
     };
     test_both("TAG_BASE + ZWJ + emoji", cps, 3, exp, 1);
   }
@@ -725,7 +725,7 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F3F4, 0xFE0F, 0x200D, 0x1F600};
     emoji_range_t exp[] = {
-      RANGE(0, 3, T_ZWJ, S_EMOJI)
+      RANGE(0, 4, T_ZWJ, S_EMOJI)
     };
     test_both("TAG_BASE + VS-16 + ZWJ + emoji", cps, 4, exp, 1);
   }
@@ -733,7 +733,7 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F3F4, 0xFE0E};
     emoji_range_t exp[] = {
-      RANGE(0, 1, T_BASIC, S_TEXT)
+      RANGE(0, 2, T_BASIC, S_TEXT)
     };
     test_both("TAG_BASE + VS-15", cps, 2, exp, 1);
   }
@@ -741,7 +741,7 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F3F4, 0xFE0F, 0xE0067, 0xE0062, 0xE007F};
     emoji_range_t exp[] = {
-      RANGE(0, 1, T_BASIC, S_EMOJI)
+      RANGE(0, 2, T_BASIC, S_EMOJI)
     };
     test_both("TAG_BASE + VS-16 + tags (tag rejected)", cps, 5, exp, 1);
   }
@@ -749,7 +749,7 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F600, 0xE0067, 0xE0062, 0xE007F};
     emoji_range_t exp[] = {
-      RANGE(0, 0, T_BASIC, S_UNSPECIFIED)
+      RANGE(0, 1, T_BASIC, S_UNSPECIFIED)
     };
     test_both("Emoji + tag chars (rejected)", cps, 4, exp, 1);
   }
@@ -757,7 +757,7 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F600, 0xE007F};
     emoji_range_t exp[] = {
-      RANGE(0, 0, T_BASIC, S_UNSPECIFIED)
+      RANGE(0, 1, T_BASIC, S_UNSPECIFIED)
     };
     test_both("Emoji + cancel tag (rejected)", cps, 2, exp, 1);
   }
@@ -765,7 +765,7 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F3F4, 0xE0067, 0xE0062};
     emoji_range_t exp_greedy[] = {
-      RANGE(0, 0, T_BASIC, S_UNSPECIFIED)
+      RANGE(0, 1, T_BASIC, S_UNSPECIFIED)
     };
     test_greedy("Tag without cancel [greedy]", cps, 3, exp_greedy, 1);
     test_strict("Tag without cancel [strict]", cps, 3, NULL, 0);
@@ -774,7 +774,7 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F3F4, 0xE007F};
     emoji_range_t exp_greedy[] = {
-      RANGE(0, 0, T_BASIC, S_UNSPECIFIED)
+      RANGE(0, 1, T_BASIC, S_UNSPECIFIED)
     };
     test_greedy("Cancel tag without specs [greedy]", cps, 2, exp_greedy, 1);
     test_strict("Cancel tag without specs [strict]", cps, 2, NULL, 0);
@@ -786,9 +786,9 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F600, 0x1F44D, 0x1F3FB, 0x1F1FA, 0x1F1F8};
     emoji_range_t exp[] = {
-      RANGE(0, 0, T_BASIC,    S_UNSPECIFIED),
-      RANGE(1, 2, T_MODIFIER, S_UNSPECIFIED),
-      RANGE(3, 4, T_FLAG,     S_UNSPECIFIED)
+      RANGE(0, 1, T_BASIC,    S_UNSPECIFIED),
+      RANGE(1, 3, T_MODIFIER, S_UNSPECIFIED),
+      RANGE(3, 5, T_FLAG,     S_UNSPECIFIED)
     };
     test_both("Multiple sequences (3 types)", cps, 5, exp, 3);
   }
@@ -796,9 +796,9 @@ int main(void) {
   {
     uint32_t cps[] = {0x1F600, 0x1F1F8, 0x1F1EA, 0x1F1F3};
     emoji_range_t exp[] = {
-      RANGE(0, 0, T_BASIC, S_UNSPECIFIED),
-      RANGE(1, 2, T_FLAG,  S_UNSPECIFIED), 
-      RANGE(3, 3, T_BASIC, S_UNSPECIFIED)
+      RANGE(0, 1, T_BASIC, S_UNSPECIFIED),
+      RANGE(1, 3, T_FLAG,  S_UNSPECIFIED), 
+      RANGE(3, 4, T_BASIC, S_UNSPECIFIED)
     };
     test_both("Emoji then flag then lone RI", cps, 4, exp, 3);
   }
@@ -809,8 +809,8 @@ int main(void) {
       0x263A, 0xFE0F
     };
     emoji_range_t exp[] = {
-      RANGE(0, 2, T_KEYCAP, S_TEXT),
-      RANGE(3, 4, T_BASIC,  S_EMOJI)
+      RANGE(0, 3, T_KEYCAP, S_TEXT),
+      RANGE(3, 5, T_BASIC,  S_EMOJI)
     };
     test_both("Keycap VS-15 + Emoji VS-16", cps, 5, exp, 2);
   }
@@ -822,8 +822,8 @@ int main(void) {
       0x263A, 0xFE0F   // ☺️
     };
     emoji_range_t exp[] = {
-      RANGE(0, 1, T_BASIC, S_TEXT),
-      RANGE(3, 4, T_BASIC, S_EMOJI)
+      RANGE(0, 2, T_BASIC, S_TEXT),
+      RANGE(3, 5, T_BASIC, S_EMOJI)
     };
     test_both("VS-15 + text + VS-16", cps, 5, exp, 2);
   }
@@ -836,8 +836,8 @@ int main(void) {
       0x263A, 0xFE0F   // ☺️
     };
     emoji_range_t exp[] = {
-      RANGE(0, 1, T_BASIC, S_TEXT),
-      RANGE(4, 5, T_BASIC, S_EMOJI)
+      RANGE(0, 2, T_BASIC, S_TEXT),
+      RANGE(4, 6, T_BASIC, S_EMOJI)
     };
     test_both("VS-15 + text + text + VS-16", cps, 6, exp, 2);
   }

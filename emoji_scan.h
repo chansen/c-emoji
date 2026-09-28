@@ -40,8 +40,9 @@
  *     complete buffer and partial sequences at the end should not be lost.
  *
  * Output sequences are written to out[] as emoji_range_t values (see
- * emoji_range.h), indexing into the codepoints array. If more sequences are
- * found than max_out allows, the excess are silently discarded.
+ * emoji_range.h), indexing into the codepoints array as half-open [start, end)
+ * ranges. If more sequences are found than max_out allows, the excess are
+ * silently discarded.
  *
  * Neither function performs semantic validation.  Sequences that are
  * structurally valid but have no defined rendering (e.g. two arbitrary emoji
@@ -78,7 +79,7 @@ static inline size_t emoji_scan_strict(const uint32_t* codepoints,
     if (emoji_dfa_is_boundary(next)) {
       if (emoji_dfa_is_accepting(state)) 
         out[count++] = emoji_range_from_snapshot_bitmask(start,
-                                                         i - 1,
+                                                         i,
                                                          recorded_bitmask);
       recorded_bitmask = 0;
       next  = emoji_dfa_step_record(EMOJI_DFA_STATE_START, klass, &recorded_bitmask);
@@ -92,7 +93,7 @@ static inline size_t emoji_scan_strict(const uint32_t* codepoints,
 
   if (start < len && count < max_out && emoji_dfa_is_accepting(state)) {
     out[count++] = emoji_range_from_snapshot_bitmask(start,
-                                                     len - 1,
+                                                     len,
                                                      recorded_bitmask);
   }
   return count;
@@ -130,7 +131,7 @@ static inline size_t emoji_scan_greedy(const uint32_t* codepoints,
     if (emoji_dfa_is_accepting(state)) {
       accepted_bitmask = recorded_bitmask;
       has_accept = true;
-      end = i;
+      end = i + 1;
     }
   }
 

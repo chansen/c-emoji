@@ -28,12 +28,13 @@ emoji_range_t seqs[16];
 size_t count = emoji_scan_greedy(text, 4, seqs, 16);
 
 for (size_t i = 0; i < count; i++) {
-  printf("emoji at [%zu, %zu]\n", seqs[i].start, seqs[i].end);
+  printf("emoji at [%zu, %zu)\n", seqs[i].start, seqs[i].end);
 }
-// emoji at [0, 3]
+// emoji at [0, 4)
 ```
 
-`start` and `end` are inclusive indices into the codepoint array.
+Ranges are half-open: `start` is the index of the sequence's first
+codepoint, `end` is the index one past its last codepoint.
 
 ## Strict vs greedy
 
@@ -52,10 +53,10 @@ Where the two functions differ:
 
 | Input                            | strict  | greedy        |
 |----------------------------------|---------|---------------|
-| `👨 ZWJ` (trailing ZWJ)          | ∅       | `{0,0}`       |
-| `👨 ZWJ ZWJ 👩` (double ZWJ)     | `{3,3}` | `{0,0} {3,3}` |
-| `👨 ZWJ A` (invalid ZWJ target)  | ∅       | `{0,0}`       |
-| `🏴 gb eng` (tag without cancel) | ∅       | `{0,0}`       |
+| `👨 ZWJ` (trailing ZWJ)          | ∅       | `{0,1}`       |
+| `👨 ZWJ ZWJ 👩` (double ZWJ)     | `{3,4}` | `{0,1} {3,4}` |
+| `👨 ZWJ A` (invalid ZWJ target)  | ∅       | `{0,1}`       |
+| `🏴 gb eng` (tag without cancel) | ∅       | `{0,1}`       |
 
 ## Using the DFA directly
 

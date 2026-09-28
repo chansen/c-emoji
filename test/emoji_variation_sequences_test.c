@@ -63,7 +63,7 @@ static void test_variation_sequence(uint32_t base,
   uint32_t cps[2] = {base, vs};
   emoji_range_t out[1];
   size_t n = emoji_scan_strict(cps, 2, out, 1);
-  if (n != 1 || out[0].start != 0 || out[0].end != 1) {
+  if (n != 1 || out[0].start != 0 || out[0].end != 2) {
     stat->failed++;
     printf("FAIL [%s]: scanner rejected U+%04X U+%04X at line %d\n",
            stat->name, base, vs, lineno);

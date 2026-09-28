@@ -21,8 +21,9 @@
  * SOFTWARE.
  */
 
-/* emoji_range_t: an index range [start, end] (inclusive), tagged with its
- * resolved sequence type and presentation style.
+/* emoji_range_t: a half-open index range [start, end) — end is the index
+ * of the first codepoint after the sequence, not the last codepoint in it
+ * — tagged with its resolved sequence type and presentation style.
  */
 #ifndef EMOJI_RANGE_H
 #define EMOJI_RANGE_H
