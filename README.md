@@ -99,6 +99,27 @@ These finders are stateless — each call re-derives DFA state from
 scratch, so callers resuming on small slices re-scan the pending prefix.
 They suit one-shot or restartable finding, not incremental streaming.
 
+## Qualification
+
+`emoji_qualification_resolve()` classifies a scanned `emoji_span_t`
+per UTS #51's qualification levels:
+
+| Status                                    | Meaning |
+| ----------------------------------------- | ------- |
+| `EMOJI_QUALIFICATION_FULLY_QUALIFIED`     | ED-18 — all required selectors present |
+| `EMOJI_QUALIFICATION_MINIMALLY_QUALIFIED` | ED-18a — ZWJ chain where a non-first element lacks a required selector |
+| `EMOJI_QUALIFICATION_UNQUALIFIED`         | ED-19 — first element unqualified, or no selector where one is required |
+
+`emoji_qualification_rewrite_unqualified(span, dst, capacity)` strips
+all variation selectors; `emoji_qualification_rewrite_fully(span, dst,
+capacity)` emits the fully-qualified form (VS-16 after each element that
+requires it). Both return the number of codepoints required — pass
+`dst_capacity = 0` to size the buffer, retry when the return exceeds it.
+
+The span's type/style must have been resolved from the codepoints it
+views — qualification never re-classifies; a mismatched span is
+undefined behavior.
+
 ## Using the DFA directly
 
 For custom pipelines — streaming parsers, renderers, text editors — use the
@@ -237,18 +258,19 @@ stricter conformance should validate emitted sequences as needed:
 ## File overview
 
 | File                   | Purpose |
-|------------------------|---------|
-| `emoji_scan.h`         | Scanner implementation — `emoji_scan_strict()`, `emoji_scan_greedy()`, `emoji_scan_next_strict()`, `emoji_scan_next_greedy()` |
-| `emoji_range.h`        | Emoji range type — `emoji_range_t` |
-| `emoji_span.h`         | Borrowed pointer view — `emoji_span_t`, `emoji_span_from_range()` |
-| `emoji_types.h`        | Emoji types — `emoji_sequence_type_t`, `emoji_presentation_style_t` |
-| `emoji_dfa.h`          | DFA core — state machine, transition table, `emoji_dfa_step()`, `emoji_dfa_step_record()` |
-| `emoji_dfa_classify.h` | Post-scan classification from recorded bitmask |
-| `emoji_presentation.h` | Resolves presentation style from sequence type and presentation style — `emoji_presentation_resolve()`, `emoji_presentation_resolve_default()` |
-| `emoji_ucd.h`          | UCD predicate interface — `Emoji`, `Emoji_Modifier_Base`, `Emoji_Presentation`, plus small structural predicates (keycap, tag, RI, VS, modifier). Selects `emoji_ucd_builtin.h` or `emoji_ucd_icu.h` |
-| `emoji_ucd_builtin.h`  | Default backend for the three properties above, via bundled two-level compressed tries. No dependencies |
-| `emoji_ucd_icu.h`      | Optional ICU4C-backed alternative, selected with `EMOJI_UCD_USE_ICU`. See [UCD backend selection](#ucd-backend-selection) |
-| `emoji_ucd_classify.h` | Maps codepoints to DFA character classes |
+|-------------------------|---------|
+| `emoji_scan.h`          | Scanner implementation — `emoji_scan_strict()`, `emoji_scan_greedy()`, `emoji_scan_next_strict()`, `emoji_scan_next_greedy()` |
+| `emoji_range.h`         | Emoji range type — `emoji_range_t` |
+| `emoji_span.h`          | Borrowed pointer view — `emoji_span_t`, `emoji_span_from_range()` |
+| `emoji_types.h`         | Emoji types — `emoji_sequence_type_t`, `emoji_presentation_style_t` |
+| `emoji_qualification.h` | UTS #51 qualification (`emoji_qualification_resolve`) and sequence rewriting (`emoji_qualification_rewrite_unqualified`, `emoji_qualification_rewrite_fully`) |
+| `emoji_dfa.h`           | DFA core — state machine, transition table, `emoji_dfa_step()`, `emoji_dfa_step_record()` |
+| `emoji_dfa_classify.h`  | Post-scan classification from recorded bitmask |
+| `emoji_presentation.h`  | Resolves presentation style from sequence type and presentation style — `emoji_presentation_resolve()`, `emoji_presentation_resolve_default()` |
+| `emoji_ucd.h`           | UCD predicate interface — `Emoji`, `Emoji_Modifier_Base`, `Emoji_Presentation`, plus small structural predicates (keycap, tag, RI, VS, modifier). Selects `emoji_ucd_builtin.h` or `emoji_ucd_icu.h` |
+| `emoji_ucd_builtin.h`   | Default backend for the three properties above, via bundled two-level compressed tries. No dependencies |
+| `emoji_ucd_icu.h`       | Optional ICU4C-backed alternative, selected with `EMOJI_UCD_USE_ICU`. See [UCD backend selection](#ucd-backend-selection) |
+| `emoji_ucd_classify.h`  | Maps codepoints to DFA character classes |
 
 ## Static memory
 
