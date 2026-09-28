@@ -4,6 +4,7 @@ CFLAGS := -I. -std=c99 -Wall -Wextra -Wpedantic -O2
 HEADERS := emoji_dfa.h \
            emoji_dfa_classify.h \
            emoji_presentation.h \
+           emoji_qualification.h \
            emoji_range.h \
            emoji_scan.h \
            emoji_span.h \
@@ -16,6 +17,7 @@ HEADERS := emoji_dfa.h \
 TEST_BINARIES := emoji_data_test \
                  emoji_dfa_classify_test \
                  emoji_presentation_test \
+                 emoji_qualification_test \
                  emoji_scan_test \
                  emoji_sequences_test \
                  emoji_test_test \

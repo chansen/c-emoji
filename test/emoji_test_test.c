@@ -1,18 +1,18 @@
 /*
- * Tests all emoji sequences from unicode-data/emoji-test.txt against the 
- * scanner, bucketed by qualification status.
+ * Tests all emoji sequences from unicode-data/emoji-test.txt.
  *
- * Each sequence is fed through emoji_scan_strict().
+ * Each sequence is scanned with emoji_scan_next_strict() and the
+ * resulting span resolved via emoji_qualification_resolve(); the
+ * resolved status must match the file's fully-qualified /
+ * minimally-qualified / unqualified label.
  */
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
-#include "emoji_dfa.h"
-#include "emoji_dfa_classify.h"
 #include "emoji_scan.h"
-#include "emoji_ucd_classify.h"
+#include "emoji_qualification.h"
 
 typedef struct {
   const char* name;
@@ -60,6 +60,25 @@ static bool qualification_to_stat(const char* qual, qualification_stat_t** out) 
   return false;
 }
 
+/* "component" has no matching emoji_qualification_status_t value. Returns
+ * false for it (and for anything unrecognized), true with *out set for the
+ * three resolve() actually distinguishes. */
+static bool status_to_expected(const char* status, emoji_qualification_status_t* out) {
+  if (strcmp(status, "fully-qualified") == 0) {
+    *out = EMOJI_QUALIFICATION_FULLY_QUALIFIED;
+    return true;
+  }
+  if (strcmp(status, "minimally-qualified") == 0) {
+    *out = EMOJI_QUALIFICATION_MINIMALLY_QUALIFIED;
+    return true;
+  }
+  if (strcmp(status, "unqualified") == 0) {
+    *out = EMOJI_QUALIFICATION_UNQUALIFIED;
+    return true;
+  }
+  return false;
+}
+
 static void test_sequence(uint32_t* cps,
                           size_t len,
                           qualification_stat_t* stat,
@@ -73,6 +92,22 @@ static void test_sequence(uint32_t* cps,
     stat->failed++;
     printf("FAIL [%s]: scanner rejected U+%04X .. at line %d\n",
            stat->name, cps[0], lineno);
+    return;
+  }
+
+  emoji_qualification_status_t expected;
+  if (!status_to_expected(stat->name, &expected)) {
+    // Component lines map to no expected status; a 1/1 scan above is all
+    // they can be tested for.
+    stat->passed++;
+    return;
+  }
+
+  emoji_qualification_status_t got = emoji_qualification_resolve(out);
+  if (got != expected) {
+    stat->failed++;
+    printf("FAIL [%s]: U+%04X .. resolved %d, expected %d, at line %d\n",
+           stat->name, cps[0], got, expected, lineno);
     return;
   }
 
