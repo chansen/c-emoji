@@ -69,6 +69,12 @@ emoji_range_from_snapshot_bitmask(size_t start,
                                      emoji_dfa_classify_style(snapshot_bitmask));
 }
 
+// Number of codepoints in the range.
+static inline size_t  
+emoji_range_length(const emoji_range_t* r) {  
+  return r->end - r->start;  
+}
+
 #ifdef __cplusplus
 }
 #endif
