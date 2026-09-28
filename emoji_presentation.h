@@ -35,9 +35,11 @@
 #ifndef EMOJI_PRESENTATION_H
 #define EMOJI_PRESENTATION_H
 #include <stdint.h>
+#include <assert.h>
 
 #include "emoji_types.h"
 #include "emoji_ucd.h"
+#include "emoji_span.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -77,6 +79,14 @@ emoji_presentation_resolve(emoji_sequence_type_t      type,
   if (style != EMOJI_PRESENTATION_UNSPECIFIED)
     return style;
   return emoji_presentation_resolve_unspecified(type, leading_codepoint);
+}
+
+static inline emoji_presentation_style_t
+emoji_presentation_resolve_span(emoji_span_t span) {
+  assert(span.src != NULL && span.len > 0);
+  return span.style == EMOJI_PRESENTATION_UNSPECIFIED
+       ? emoji_presentation_resolve_unspecified(span.type, span.src[0])
+       : span.style;
 }
 
 #ifdef __cplusplus
