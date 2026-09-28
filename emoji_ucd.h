@@ -87,6 +87,11 @@ static inline bool emoji_ucd_is_emoji_presentation_selector(uint32_t cp) {
   return cp == 0xFE0F;
 }
 
+// U+FE0E..U+FE0F VARIATION SELECTOR 15-16
+static inline bool emoji_ucd_is_presentation_selector(uint32_t cp) {
+  return cp == 0xFE0E || cp == 0xFE0F;
+}
+
 // REGIONAL INDICATOR SYMBOL LETTER A..Z
 static inline bool emoji_ucd_is_regional_indicator(uint32_t cp) {
   return cp >= 0x1F1E6 && cp <= 0x1F1FF;
@@ -95,6 +100,11 @@ static inline bool emoji_ucd_is_regional_indicator(uint32_t cp) {
 // EMOJI MODIFIER FITZPATRICK TYPE 1-6
 static inline bool emoji_ucd_is_modifier(uint32_t cp) {
   return cp >= 0x1F3FB && cp <= 0x1F3FF;
+}
+
+// U+200D ZERO WIDTH JOINER
+static inline bool emoji_ucd_is_zwj(uint32_t cp) {
+  return cp == 0x200D;
 }
 
 #ifdef __cplusplus
