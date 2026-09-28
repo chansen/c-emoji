@@ -70,16 +70,17 @@ static void test_sequence(uint32_t* cps,
                           int lineno) {
   stat->run++;
 
-  emoji_range_t out[1];
-  size_t n = emoji_scan_strict(cps, len, out, 1);
-  if (n != 1 || out[0].start != 0 || out[0].end != len) {
+  emoji_span_t out;
+  size_t position = 0;
+  if (!emoji_scan_next_strict(cps, len, &out, &position, true) ||
+      out.src != cps || out.len != len || position != len) {
     stat->failed++;
     printf("FAIL [%s]: scanner rejected U+%04X .. at line %d\n",
            stat->name, cps[0], lineno);
     return;
   }
 
-  emoji_sequence_type_t got = out[0].type;
+  emoji_sequence_type_t got = out.type;
   if (got != stat->type) {
     stat->failed++;
     printf("FAIL [%s]: classify_type got %d expected %d (U+%04X ..) at line %d\n",

@@ -61,16 +61,17 @@ static void test_variation_sequence(uint32_t base,
   stat->run++;
 
   uint32_t cps[2] = {base, vs};
-  emoji_range_t out[1];
-  size_t n = emoji_scan_strict(cps, 2, out, 1);
-  if (n != 1 || out[0].start != 0 || out[0].end != 2) {
+  emoji_span_t out;
+  size_t position = 0;
+  if (!emoji_scan_next_strict(cps, 2, &out, &position, true) ||
+      out.src != cps || out.len != 2 || position != 2) {
     stat->failed++;
     printf("FAIL [%s]: scanner rejected U+%04X U+%04X at line %d\n",
            stat->name, base, vs, lineno);
     return;
   }
 
-  emoji_sequence_type_t got_type = out[0].type;
+  emoji_sequence_type_t got_type = out.type;
   if (got_type != EMOJI_SEQUENCE_BASIC) {
     stat->failed++;
     printf("FAIL [%s]: type got %d expected %d (U+%04X U+%04X) at line %d\n",
@@ -78,7 +79,7 @@ static void test_variation_sequence(uint32_t base,
     return;
   }
 
-  emoji_presentation_style_t got_style = out[0].style;
+  emoji_presentation_style_t got_style = out.style;
   if (got_style != stat->style) {
     stat->failed++;
     printf("FAIL [%s]: style got %d expected %d (U+%04X U+%04X) at line %d\n",

@@ -5,6 +5,7 @@
 #include "emoji_dfa.h"
 #include "emoji_dfa_classify.h"
 #include "emoji_ucd_classify.h"
+#include "emoji_span.h"
 
 static int TestsRun = 0;
 static int TestsPassed = 0;
@@ -22,8 +23,8 @@ static void test_type(const char* name,
     state = emoji_dfa_step_record(state, klass, &bitmask);
   }
 
-  emoji_sequence_type_t got = emoji_dfa_classify_type(bitmask);
-  bool ok = got == expected_type;
+  emoji_span_t span = emoji_span_from_snapshot_bitmask(cps, len, bitmask);
+  bool ok = span.type == expected_type;
 
   TestsRun++;
   if (ok) {
@@ -31,7 +32,7 @@ static void test_type(const char* name,
     printf("PASS - %s\n", name);
   } else {
     TestsFailed++;
-    printf("FAIL - %s (got %d, expected %d)\n", name, got, expected_type);
+    printf("FAIL - %s (got %d, expected %d)\n", name, span.type, expected_type);
   }
 }
 
@@ -47,8 +48,8 @@ static void test_style(const char* name,
     state = emoji_dfa_step_record(state, klass, &bitmask);
   }
 
-  emoji_presentation_style_t got = emoji_dfa_classify_style(bitmask);
-  bool ok = got == expected_style;
+  emoji_span_t span = emoji_span_from_snapshot_bitmask(cps, len, bitmask);
+  bool ok = span.style == expected_style;
 
   TestsRun++;
   if (ok) {
@@ -56,7 +57,7 @@ static void test_style(const char* name,
     printf("PASS - %s\n", name);
   } else {
     TestsFailed++;
-    printf("FAIL - %s (got %d, expected %d)\n", name, got, expected_style);
+    printf("FAIL - %s (got %d, expected %d)\n", name, span.style, expected_style);
   }
 }
 
