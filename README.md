@@ -259,8 +259,8 @@ With the default builtin UCD backend:
 | `emoji_ucd_is_emoji` trie                        |    952 bytes |
 | `emoji_ucd_is_modifier_base` trie                |    520 bytes |
 | `emoji_ucd_is_presentation` trie                 |    744 bytes |
-| DFA transition table (13×13 × `sizeof(uint8_t)`) |    169 bytes |
-| Total static data                                |  2,385 bytes |
+| DFA transition table (15×13 × `sizeof(uint8_t)`) |    195 bytes |
+| Total static data                                |  2,411 bytes |
 
 All data is `static const`. Zero global mutable state. Building with
 `EMOJI_UCD_USE_ICU` (see below) drops these three tries in favor of calls

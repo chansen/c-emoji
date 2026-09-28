@@ -50,41 +50,43 @@ extern "C" {
 #endif
 
 typedef enum {
-  EMOJI_DFA_STATE_REJECT = 0,    // Boundary: no valid transition
-  EMOJI_DFA_STATE_START,         // Idle: not inside any sequence
+  EMOJI_DFA_STATE_REJECT = 0,        // Boundary: no valid transition
+  EMOJI_DFA_STATE_START,             // Idle: not inside any sequence
 
   // Accepting — a complete sequence ends here (may be extended)
-  EMOJI_DFA_STATE_TERMINAL,      // Dead-end accept: keycap, flag pair, tag
-  EMOJI_DFA_STATE_EMOJI,         // Bare emoji or ZWJ target
-  EMOJI_DFA_STATE_MODIFIER_BASE, // Emoji that accepts a modifier
-  EMOJI_DFA_STATE_OPTIONAL_ZWJ,  // Accept + VS-16 or modifier applied
-  EMOJI_DFA_STATE_KEYCAP_VS,     // Keycap base + variation selector
-  EMOJI_DFA_STATE_TAG_BASE,      // U+1F3F4 (may open a tag sequence)
-  EMOJI_DFA_STATE_RI,            // First regional indicator
+  EMOJI_DFA_STATE_TERMINAL,          // Dead-end accept: keycap, flag pair, tag
+  EMOJI_DFA_STATE_EMOJI,             // Bare emoji or ZWJ target
+  EMOJI_DFA_STATE_EMOJI_ZWJ,         // ZWJ element (no VS-15)
+  EMOJI_DFA_STATE_MODIFIER_BASE,     // Emoji that accepts a modifier
+  EMOJI_DFA_STATE_MODIFIER_BASE_ZWJ, // ZWJ modifier base (no VS-15) 
+  EMOJI_DFA_STATE_OPTIONAL_ZWJ,      // Accept + VS-16 or modifier applied
+  EMOJI_DFA_STATE_KEYCAP_VS,         // Keycap base + variation selector
+  EMOJI_DFA_STATE_TAG_BASE,          // U+1F3F4 (may open a tag sequence)
+  EMOJI_DFA_STATE_RI,                // First regional indicator
 
   // Pending — inside a valid prefix, no complete sequence yet
-  EMOJI_DFA_STATE_TAG_SPEC,      // Accumulating tag characters
-  EMOJI_DFA_STATE_TAG_EMPTY,     // Cancel tag without any tag characters
-  EMOJI_DFA_STATE_KEYCAP_BASE,   // Digit/*/# awaiting VS or keycap term
-  EMOJI_DFA_STATE_ZWJ,           // ZWJ received, awaiting target emoji
+  EMOJI_DFA_STATE_TAG_SPEC,          // Accumulating tag characters
+  EMOJI_DFA_STATE_TAG_EMPTY,         // Cancel tag without any tag characters
+  EMOJI_DFA_STATE_KEYCAP_BASE,       // Digit/*/# awaiting VS or keycap term
+  EMOJI_DFA_STATE_ZWJ,               // ZWJ received, awaiting target emoji
 
   EMOJI_DFA_STATE_COUNT
 } emoji_dfa_state_t;
 
 typedef enum {
   EMOJI_DFA_CLASS_OTHER = 0,
-  EMOJI_DFA_CLASS_EMOJI,          // Emoji property (catch-all)
-  EMOJI_DFA_CLASS_MODIFIER_BASE,  // Emoji_Modifier_Base property
-  EMOJI_DFA_CLASS_MODIFIER,       // Emoji_Modifier (Fitzpatrick)
-  EMOJI_DFA_CLASS_VS15,           // U+FE0E text presentation
-  EMOJI_DFA_CLASS_VS16,           // U+FE0F emoji presentation
-  EMOJI_DFA_CLASS_RI,             // Regional indicator A..Z
-  EMOJI_DFA_CLASS_KEYCAP_BASE,    // 0-9, #, *
-  EMOJI_DFA_CLASS_KEYCAP_TERM,    // U+20E3 combining enclosing keycap
-  EMOJI_DFA_CLASS_TAG_BASE,       // U+1F3F4 waving black flag
-  EMOJI_DFA_CLASS_TAG_SPEC,       // U+E0020..U+E007E tag characters
-  EMOJI_DFA_CLASS_TAG_TERM,       // U+E007F cancel tag
-  EMOJI_DFA_CLASS_ZWJ,            // U+200D zero width joiner
+  EMOJI_DFA_CLASS_EMOJI,              // Emoji property (catch-all)
+  EMOJI_DFA_CLASS_MODIFIER_BASE,      // Emoji_Modifier_Base property
+  EMOJI_DFA_CLASS_MODIFIER,           // Emoji_Modifier (Fitzpatrick)
+  EMOJI_DFA_CLASS_VS15,               // U+FE0E text presentation
+  EMOJI_DFA_CLASS_VS16,               // U+FE0F emoji presentation
+  EMOJI_DFA_CLASS_RI,                 // Regional indicator A..Z
+  EMOJI_DFA_CLASS_KEYCAP_BASE,        // 0-9, #, *
+  EMOJI_DFA_CLASS_KEYCAP_TERM,        // U+20E3 combining enclosing keycap
+  EMOJI_DFA_CLASS_TAG_BASE,           // U+1F3F4 waving black flag
+  EMOJI_DFA_CLASS_TAG_SPEC,           // U+E0020..U+E007E tag characters
+  EMOJI_DFA_CLASS_TAG_TERM,           // U+E007F cancel tag
+  EMOJI_DFA_CLASS_ZWJ,                // U+200D zero width joiner
   EMOJI_DFA_CLASS_COUNT
 } emoji_dfa_class_t;
 
@@ -143,8 +145,17 @@ emoji_dfa_table[EMOJI_DFA_STATE_COUNT][EMOJI_DFA_CLASS_COUNT] = {
     [EMOJI_DFA_CLASS_VS16]          = EMOJI_DFA_STATE_OPTIONAL_ZWJ,
     [EMOJI_DFA_CLASS_ZWJ]           = EMOJI_DFA_STATE_ZWJ,
   },
+  [EMOJI_DFA_STATE_EMOJI_ZWJ] = {
+    [EMOJI_DFA_CLASS_VS16]          = EMOJI_DFA_STATE_OPTIONAL_ZWJ,
+    [EMOJI_DFA_CLASS_ZWJ]           = EMOJI_DFA_STATE_ZWJ,
+  },
   [EMOJI_DFA_STATE_MODIFIER_BASE] = {
     [EMOJI_DFA_CLASS_VS15]          = EMOJI_DFA_STATE_TERMINAL,
+    [EMOJI_DFA_CLASS_VS16]          = EMOJI_DFA_STATE_OPTIONAL_ZWJ,
+    [EMOJI_DFA_CLASS_ZWJ]           = EMOJI_DFA_STATE_ZWJ,
+    [EMOJI_DFA_CLASS_MODIFIER]      = EMOJI_DFA_STATE_OPTIONAL_ZWJ,
+  },
+  [EMOJI_DFA_STATE_MODIFIER_BASE_ZWJ] = {
     [EMOJI_DFA_CLASS_VS16]          = EMOJI_DFA_STATE_OPTIONAL_ZWJ,
     [EMOJI_DFA_CLASS_ZWJ]           = EMOJI_DFA_STATE_ZWJ,
     [EMOJI_DFA_CLASS_MODIFIER]      = EMOJI_DFA_STATE_OPTIONAL_ZWJ,
@@ -164,8 +175,8 @@ emoji_dfa_table[EMOJI_DFA_STATE_COUNT][EMOJI_DFA_CLASS_COUNT] = {
     [EMOJI_DFA_CLASS_ZWJ]           = EMOJI_DFA_STATE_ZWJ,
   },
   [EMOJI_DFA_STATE_ZWJ] = {
-    [EMOJI_DFA_CLASS_EMOJI]         = EMOJI_DFA_STATE_EMOJI,
-    [EMOJI_DFA_CLASS_MODIFIER_BASE] = EMOJI_DFA_STATE_MODIFIER_BASE,
+    [EMOJI_DFA_CLASS_EMOJI]         = EMOJI_DFA_STATE_EMOJI_ZWJ,
+    [EMOJI_DFA_CLASS_MODIFIER_BASE] = EMOJI_DFA_STATE_MODIFIER_BASE_ZWJ,
   }
 };
 /* clang-format on */

@@ -633,6 +633,46 @@ int main(void) {
     test_both("Emoji + modifier + VS-16 (rejected)", cps, 3, exp, 1);
   }
 
+  // ── ZWJ elements reject VS-15 ───────────────────────────────────
+
+  // 👨‍👩︎ - VS-15 after a ZWJ element terminates the chain
+  //        (EMOJI_ZWJ has no VS-15 transition, unlike standalone EMOJI)
+  {
+    uint32_t cps[] = {0x1F468, 0x200D, 0x1F469, 0xFE0E};
+    emoji_range_t exp[] = {
+      RANGE(0, 3, T_ZWJ, S_UNSPECIFIED)
+    };
+    test_both("ZWJ element + VS-15 (rejected)", cps, 4, exp, 1);
+  }
+  // 👨‍👦︎ - VS-15 after a modifier-base ZWJ element
+  //        (MODIFIER_BASE_ZWJ has no VS-15 transition)
+  {
+    uint32_t cps[] = {0x1F468, 0x200D, 0x1F466, 0xFE0E};
+    emoji_range_t exp[] = {
+      RANGE(0, 3, T_ZWJ, S_UNSPECIFIED)
+    };
+    test_both("ZWJ modifier-base element + VS-15 (rejected)", cps, 4, exp, 1);
+  }
+  // 👨‍👦🏻︎ - VS-15 after a modifier inside a ZWJ chain
+  //        (OPTIONAL_ZWJ accepts only ZWJ)
+  {
+    uint32_t cps[] = {0x1F468, 0x200D, 0x1F466, 0x1F3FB, 0xFE0E};
+    emoji_range_t exp[] = {
+      RANGE(0, 4, T_ZWJ, S_UNSPECIFIED)
+    };
+    test_both("ZWJ element + modifier + VS-15 (rejected)", cps, 5, exp, 1);
+  }
+  // 👨‍👩︎‍👧 - VS-15 mid-chain: terminates the sequence, the trailing
+  //         ZWJ + emoji re-scan as a lone emoji (VS-15 and ZWJ have no base)
+  {
+    uint32_t cps[] = {0x1F468, 0x200D, 0x1F469, 0xFE0E, 0x200D, 0x1F467};
+    emoji_range_t exp[] = {
+      RANGE(0, 3, T_ZWJ,   S_UNSPECIFIED),
+      RANGE(5, 6, T_BASIC, S_UNSPECIFIED)
+    };
+    test_both("VS-15 mid-chain blocks ZWJ continuation", cps, 6, exp, 2);
+  }
+
   // ── ZWJ sequences ─────────────────────────────────────────────── 
 
   // 👨‍👩‍👧 - Family
