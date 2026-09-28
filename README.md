@@ -34,7 +34,10 @@ for (size_t i = 0; i < count; i++) {
 ```
 
 Ranges are half-open: `start` is the index of the sequence's first
-codepoint, `end` is the index one past its last codepoint.
+codepoint, `end` is the index one past its last codepoint. Callers that
+prefer a borrowed pointer view can convert with `emoji_span_from_range()`
+from `emoji_span.h`, or use the single-match finders below which return
+spans directly.
 
 ## Strict vs greedy
 
@@ -57,6 +60,44 @@ Where the two functions differ:
 | `👨 ZWJ ZWJ 👩` (double ZWJ)     | `{3,4}` | `{0,1} {3,4}` |
 | `👨 ZWJ A` (invalid ZWJ target)  | ∅       | `{0,1}`       |
 | `🏴 gb eng` (tag without cancel) | ∅       | `{0,1}`       |
+
+## Single-match scanning
+
+`emoji_scan_next_strict()` and `emoji_scan_next_greedy()` are single-match
+variants of the batch scanners. Each returns one `emoji_span_t` — a
+borrowed view `{src, len}` over the input, tagged with the resolved
+sequence type and presentation style — instead of filling an output array:
+
+```c
+emoji_span_t seq;
+size_t base = 0, position = 0;
+
+while (base < len &&
+       emoji_scan_next_greedy(text + base, len - base,
+                              &seq, &position, true)) {
+  printf("emoji: %zu codepoints at offset %zd\n",
+         seq.len, seq.src - text);
+  base += position;   // position is relative to the slice, not the buffer
+}
+```
+
+`*position` is always written, on success and failure, and is relative
+to the slice passed in — the caller resumes at `codepoints + *position`
+of that slice. On a match it points one past the emitted sequence (for
+the greedy finder this is the accepted endpoint, which may be earlier
+than the codepoint that terminated the match); on `false` it is `len`
+when the input is exhausted, or — with `eof=false` and an incomplete
+sequence at the tail — that sequence's start, so the caller can append
+data and retry.
+
+`emoji_span_t.src` borrows the input buffer: the span is only valid while
+the buffer stays resident and unmodified. Where indices must survive
+buffer movement or compaction, use the batch scanners' `emoji_range_t`
+output instead.
+
+These finders are stateless — each call re-derives DFA state from
+scratch, so callers resuming on small slices re-scan the pending prefix.
+They suit one-shot or restartable finding, not incremental streaming.
 
 ## Using the DFA directly
 
@@ -197,8 +238,9 @@ stricter conformance should validate emitted sequences as needed:
 
 | File                   | Purpose |
 |------------------------|---------|
-| `emoji_scan.h`         | Scanner implementation — `emoji_scan_strict()`, `emoji_scan_greedy()` |
+| `emoji_scan.h`         | Scanner implementation — `emoji_scan_strict()`, `emoji_scan_greedy()`, `emoji_scan_next_strict()`, `emoji_scan_next_greedy()` |
 | `emoji_range.h`        | Emoji range type — `emoji_range_t` |
+| `emoji_span.h`         | Borrowed pointer view — `emoji_span_t`, `emoji_span_from_range()` |
 | `emoji_types.h`        | Emoji types — `emoji_sequence_type_t`, `emoji_presentation_style_t` |
 | `emoji_dfa.h`          | DFA core — state machine, transition table, `emoji_dfa_step()`, `emoji_dfa_step_record()` |
 | `emoji_dfa_classify.h` | Post-scan classification from recorded bitmask |
