@@ -10,6 +10,7 @@
 #include <stdbool.h>
 
 #include "emoji_scan.h"
+#include "emoji_span.h"
 #include "emoji_types.h"
 
 static int TestsRun    = 0;
@@ -83,6 +84,108 @@ static void test_both(const char* label,
   run_one(name, emoji_scan_greedy, cps, len, exp, exp_n);
   snprintf(name, sizeof(name), "%s [strict]", label);
   run_one(name, emoji_scan_strict, cps, len, exp, exp_n);
+}
+
+static bool span_matches_range(emoji_span_t span, const uint32_t* base,
+                               const emoji_range_t* exp) {
+  return span.src  == base + exp->start &&
+        span.len   == emoji_range_length(exp) &&
+        span.type  == exp->type &&
+        span.style == exp->style;
+}
+
+static void run_next_whole(const char* name,
+                           bool (*fn)(const uint32_t*, size_t,
+                                      emoji_span_t*, size_t*, bool),
+                           const uint32_t* cps, size_t len,
+                           const emoji_range_t* exp, size_t exp_n) {
+  emoji_span_t out[8];
+  size_t got_n = 0, pos = 0;
+
+  while (pos < len) {
+    emoji_span_t s;
+    size_t next_pos;
+    bool found = fn(cps + pos, len - pos, &s, &next_pos, true);
+    if (found && got_n < 8)
+      out[got_n++] = s;
+    pos += next_pos;
+    if (!found)
+      break;
+  }
+
+  bool ok = (got_n == exp_n);
+  for (size_t i = 0; ok && i < got_n; i++)
+    ok = span_matches_range(out[i], cps, &exp[i]);
+
+  TestsRun++;
+  if (ok) {
+    TestsPassed++;
+    printf("PASS - %s\n", name);
+    return;
+  }
+  TestsFailed++;
+  printf("FAIL - %s\n", name);
+  printf("  expected %zu sequence(s), got %zu\n", exp_n, got_n);
+  for (size_t i = 0; i < got_n; i++)
+    printf("    got[%zu]: offset=%td len=%zu type=%d style=%d\n",
+          i, out[i].src - cps, out[i].len, out[i].type, out[i].style);
+}
+
+static void test_next_greedy(const char* name,
+                             uint32_t* cps, size_t len,
+                             emoji_range_t* exp, size_t exp_n) {
+  run_next_whole(name, emoji_scan_next_greedy, cps, len, exp, exp_n);
+}
+
+static void test_next_strict(const char* name,
+                             uint32_t* cps, size_t len,
+                             emoji_range_t* exp, size_t exp_n) {
+  run_next_whole(name, emoji_scan_next_strict, cps, len, exp, exp_n);
+}
+
+static void test_next_both(const char* label,
+                           uint32_t* cps, size_t len,
+                           emoji_range_t* exp, size_t exp_n) {
+  char name[256];
+  snprintf(name, sizeof(name), "%s [next greedy]", label);
+  run_next_whole(name, emoji_scan_next_greedy, cps, len, exp, exp_n);
+  snprintf(name, sizeof(name), "%s [next strict]", label);
+  run_next_whole(name, emoji_scan_next_strict, cps, len, exp, exp_n);
+}
+
+/*
+ * Calls fn exactly once with the given eof and checks the outcome: if exp
+ * is NULL, expects fn to report not found; otherwise expects a span
+ * covering the same codepoints as *exp.
+ */
+static void run_next_once(const char* name,
+                          bool (*fn)(const uint32_t*, size_t,
+                                     emoji_span_t*, size_t*, bool),
+                          const uint32_t* cps, size_t len, bool eof,
+                          const emoji_range_t* exp) {
+  emoji_span_t out;
+  size_t position;
+  bool found = fn(cps, len, &out, &position, eof);
+  bool ok = (exp == NULL) ? !found : (found && span_matches_range(out, cps, exp));
+
+  TestsRun++;
+  if (ok) {
+    TestsPassed++;
+    printf("PASS - %s\n", name);
+    return;
+  }
+  TestsFailed++;
+  printf("FAIL - %s\n", name);
+  if (exp == NULL)
+    printf("  expected not found, got offset=%td len=%zu type=%d style=%d (position=%zu)\n",
+          out.src - cps, out.len, out.type, out.style, position);
+  else if (!found)
+    printf("  expected offset=%zu len=%zu type=%d style=%d, got not found (position=%zu)\n",
+          exp->start, emoji_range_length(exp), exp->type, exp->style, position);
+  else
+    printf("  expected offset=%zu len=%zu type=%d style=%d, got offset=%td len=%zu type=%d style=%d (position=%zu)\n",
+          exp->start, emoji_range_length(exp), exp->type, exp->style,
+          out.src - cps, out.len, out.type, out.style, position);
 }
 
 static void print_summary(void) {
@@ -853,6 +956,94 @@ int main(void) {
   {
     uint32_t cps[] = {0x0041, 0x0042, 0x0043};
     test_both("No emoji in input", cps, 3, NULL, 0);
+  }
+
+  // ── Incremental scanning (scan_next_*) ────────────────────────── 
+
+  // 👨🏻‍💻 - Single sequence, delivered whole
+  {
+    uint32_t cps[] = {0x1F468, 0x1F3FB, 0x200D, 0x1F4BB};
+    emoji_range_t exp[] = {
+      RANGE(0, 4, T_ZWJ, S_UNSPECIFIED)
+    };
+    test_next_both("Man technologist ZWJ sequence", cps, 4, exp, 1);
+  }
+  // 😀👍🏻🇺🇸 - Multiple sequences drained across repeated calls
+  {
+    uint32_t cps[] = {0x1F600, 0x1F44D, 0x1F3FB, 0x1F1FA, 0x1F1F8};
+    emoji_range_t exp[] = {
+      RANGE(0, 1, T_BASIC,    S_UNSPECIFIED),
+      RANGE(1, 3, T_MODIFIER, S_UNSPECIFIED),
+      RANGE(3, 5, T_FLAG,     S_UNSPECIFIED)
+    };
+    test_next_both("Multiple sequences drained in one buffer", cps, 5, exp, 3);
+  }
+  // 😀A - A boundary already in hand resolves immediately even with
+  // eof == false: the codepoint after 😀 proves it can't extend further,
+  // regardless of what might still be coming.
+  {
+    uint32_t cps[] = {0x1F600, 0x0041};
+    emoji_range_t exp = RANGE(0, 1, T_BASIC, S_UNSPECIFIED);
+    run_next_once("Boundary resolves before eof [next greedy]",
+                  emoji_scan_next_greedy, cps, 2, false, &exp);
+    run_next_once("Boundary resolves before eof [next strict]",
+                  emoji_scan_next_strict, cps, 2, false, &exp);
+  }
+  // 👨🏻‍ | 💻 - A ZWJ chain split right after the joiner must wait for
+  // more input, then resolve once the rest arrives.
+  {
+    uint32_t prefix[] = {0x1F468, 0x1F3FB, 0x200D};
+    uint32_t full[]   = {0x1F468, 0x1F3FB, 0x200D, 0x1F4BB};
+    emoji_range_t exp[] = {
+      RANGE(0, 4, T_ZWJ, S_UNSPECIFIED)
+    };
+    run_next_once("ZWJ chain split — prefix withheld [next greedy]",
+                  emoji_scan_next_greedy, prefix, 3, false, NULL);
+    run_next_once("ZWJ chain split — prefix withheld [next strict]",
+                  emoji_scan_next_strict, prefix, 3, false, NULL);
+    test_next_both("ZWJ chain split — resolved once complete", full, 4, exp, 1);
+  }
+  // 🏴gb | seng🏴󠁿 - A tag sequence split before its cancel tag must wait,
+  // then resolve once the cancel tag arrives.
+  {
+    uint32_t prefix[] = {0x1F3F4, 0xE0067, 0xE0062};
+    uint32_t full[] = {0x1F3F4, 0xE0067, 0xE0062, 0xE0065, 0xE006E, 0xE0067, 0xE007F};
+    emoji_range_t exp[] = {
+      RANGE(0, 7, T_TAG, S_UNSPECIFIED)
+    };
+    run_next_once("Tag sequence split — prefix withheld [next greedy]",
+                  emoji_scan_next_greedy, prefix, 3, false, NULL);
+    run_next_once("Tag sequence split — prefix withheld [next strict]",
+                  emoji_scan_next_strict, prefix, 3, false, NULL);
+    test_next_both("Tag sequence split — resolved once complete", full, 7, exp, 1);
+  }
+  // 👨‍A - Trailing ZWJ at true eof: greedy emits the prefix, strict drops it
+  {
+    uint32_t cps[] = {0x1F468, 0x200D, 0x0041};
+    emoji_range_t exp_greedy[] = {
+      RANGE(0, 1, T_BASIC, S_UNSPECIFIED)
+    };
+    test_next_greedy("ZWJ then non-emoji at eof [next greedy]", cps, 3, exp_greedy, 1);
+    test_next_strict("ZWJ then non-emoji at eof [next strict]", cps, 3, NULL, 0);
+  }
+  // Tag sequence without a cancel tag at true eof — same divergence
+  {
+    uint32_t cps[] = {0x1F3F4, 0xE0067, 0xE0062};
+    emoji_range_t exp_greedy[] = {
+      RANGE(0, 1, T_BASIC, S_UNSPECIFIED)
+    };
+    test_next_greedy("Tag without cancel at eof [next greedy]", cps, 3, exp_greedy, 1);
+    test_next_strict("Tag without cancel at eof [next strict]", cps, 3, NULL, 0);
+  }
+  // Empty input
+  {
+    uint32_t cps[] = {0};
+    test_next_both("Empty input", cps, 0, NULL, 0);
+  }
+  // All ASCII (no emoji)
+  {
+    uint32_t cps[] = {0x0041, 0x0042, 0x0043};
+    test_next_both("No emoji in input", cps, 3, NULL, 0);
   }
 
   print_summary();
