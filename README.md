@@ -335,6 +335,14 @@ a valid `emoji_zwj_element`, allowing tag sequences to appear as components
 in ZWJ sequences. This implementation does not accept tag sequences as ZWJ 
 elements. No tag-based ZWJ sequences appear in `emoji-zwj-sequences.txt`.
 
+**Bare modifiers and regional indicators as ZWJ elements** — UTS #51 defines  
+`emoji_character` as a valid `emoji_zwj_element`, and Fitzpatrick modifiers  
+(U+1F3FB..U+1F3FF) and regional indicators (U+1F1E6..U+1F1FF) carry the  
+`Emoji` property, so either would qualify as a valid `emoji_zwj_element`  
+under the spec grammar. This implementation accepts a bare modifier or  
+regional indicator as a standalone emoji sequence, but not as a component  
+of a ZWJ sequence. No such combinations appear in `emoji-zwj-sequences.txt`.
+
 **Tag sequences restricted to U+1F3F4** — UTS #51 allows any `emoji_character`, 
 `emoji_modifier_sequence`, or `emoji_presentation_sequence` as a tag base. 
 This implementation only accepts U+1F3F4 WAVING BLACK FLAG as a tag base, 
